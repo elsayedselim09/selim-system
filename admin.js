@@ -5,10 +5,12 @@ let profile,orgId,allAppts=[],allPatients=[]
 // ── Auth ──
 const{data:{user}}=await sb.auth.getUser()
 if(!user){location.href='login.html'}
-const{data:p}=await sb.from('profiles').select('*,organizations(*),branches(*)').eq('id',user.id).single()
+const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).single()
 if(!p||!p.is_active){await sb.auth.signOut();location.href='login.html'}
 if(!['admin','accountant'].includes(p.role)){location.href=p.role==='doctor'?'doctor.html':'reception.html'}
 profile=p;orgId=p.organization_id
+const{data:org}=await sb.from('organizations').select('*').eq('id',orgId).single()
+p.organizations=org||{}
 document.querySelectorAll('[data-user-name]').forEach(e=>e.textContent=p.full_name)
 document.querySelectorAll('[data-user-role]').forEach(e=>e.textContent=({admin:'مدير النظام',doctor:'طبيب',reception:'استقبال',accountant:'محاسب'})[p.role]||p.role)
 document.querySelectorAll('[data-user-avatar]').forEach(e=>e.textContent=p.full_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase())
@@ -209,7 +211,7 @@ async function loadBranches(){
   g.innerHTML=(data||[]).map(b=>`<div class="card" style="padding:20px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><i class="fa-solid fa-code-branch" style="color:var(--primary)"></i><strong>${b.name}</strong>${b.is_main?'<span class="badge badge-blue">رئيسي</span>':''}</div><div style="font-size:13px;color:var(--text-muted)">${b.phone||''}</div><div style="font-size:13px;color:var(--text-muted)">${b.address||''}</div></div>`).join('')||'<div style="color:var(--text-muted)">لا توجد فروع</div>'
 }
 
-// ── Reports ──
+// ── Reports + Charts ──
 async function loadReports(){
   const m=new Date();const ms=new Date(m.getFullYear(),m.getMonth(),1).toISOString()
   const[{data:rev},{count:pts},{count:apts}]=await Promise.all([
@@ -224,6 +226,7 @@ async function loadReports(){
     <div class="stat-card"><div class="stat-header"><span class="stat-label">المحصّل</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-check-circle"></i></div></div><div class="stat-value">${fmoney(paid)}</div></div>
     <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي المرضى</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-users"></i></div></div><div class="stat-value">${pts||0}</div></div>
     <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد الشهر</span><div class="stat-icon" style="background:#DBEAFE;color:#1D4ED8"><i class="fa-solid fa-calendar"></i></div></div><div class="stat-value">${apts||0}</div></div>`
+  await buildCharts()
 }
 
 // ── Load selects for modals ──
@@ -237,18 +240,166 @@ async function loadSelects(){
   ds.innerHTML='<option value="">— اختر طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
 }
 
+// ── Charts ──
+async function buildCharts(){
+  const months=[];const labels=[]
+  for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);months.push(d);labels.push(d.toLocaleDateString('ar-EG',{month:'short'}))}
+  const[aD,rD,sD,pD]=await Promise.all([
+    Promise.all(months.map(m=>sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).gte('scheduled_at',new Date(m.getFullYear(),m.getMonth(),1).toISOString()).lte('scheduled_at',new Date(m.getFullYear(),m.getMonth()+1,0).toISOString()))),
+    Promise.all(months.map(m=>sb.from('invoices').select('total').eq('organization_id',orgId).eq('status','paid').gte('created_at',new Date(m.getFullYear(),m.getMonth(),1).toISOString()).lte('created_at',new Date(m.getFullYear(),m.getMonth()+1,0).toISOString()))),
+    sb.from('appointments').select('status').eq('organization_id',orgId),
+    Promise.all(months.map(m=>sb.from('patients').select('*',{count:'exact',head:true}).eq('organization_id',orgId).gte('created_at',new Date(m.getFullYear(),m.getMonth(),1).toISOString()).lte('created_at',new Date(m.getFullYear(),m.getMonth()+1,0).toISOString())))
+  ])
+  const opt={responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{family:'IBM Plex Sans Arabic'}}},x:{ticks:{font:{family:'IBM Plex Sans Arabic'}}}}}
+  const mk=(id,type,data,label,color,opts)=>{const c=document.getElementById(id);if(!c)return;const ex=Chart.getChart(c);if(ex)ex.destroy();new Chart(c,{type,data:{labels,datasets:[{label,data,borderColor:color,backgroundColor:color+(type==='line'?'20':'99'),tension:.4,fill:type==='line'}]},options:opts||opt})}
+  mk('chart-appts','line',aD.map(r=>r.count||0),'المواعيد','#6366F1')
+  mk('chart-revenue','line',rD.map(r=>(r.data||[]).reduce((s,i)=>s+(i.total||0),0)),'الإيرادات','#10B981')
+  mk('chart-patients','bar',pD.map(r=>r.count||0),'مرضى جدد','#1D4ED8')
+  const st={pending:0,confirmed:0,completed:0,cancelled:0};(sD.data||[]).forEach(a=>{if(st[a.status]!==undefined)st[a.status]++})
+  const cs=document.getElementById('chart-status');if(cs){const ex=Chart.getChart(cs);if(ex)ex.destroy();new Chart(cs,{type:'doughnut',data:{labels:['انتظار','مؤكد','مكتمل','ملغي'],datasets:[{data:Object.values(st),backgroundColor:['#F59E0B','#6366F1','#10B981','#EF4444']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'IBM Plex Sans Arabic'}}}}}})}  
+}
+
+// ── Excel Export ──
+window.exportExcel=async(type)=>{
+  let data,fname
+  if(type==='patients'){
+    const{data:d}=await sb.from('patients').select('mrn,full_name,gender,phone,email,blood_type,status,created_at').eq('organization_id',orgId)
+    data=(d||[]).map(r=>({الرقم:r.mrn,الاسم:r.full_name,الجنس:r.gender==='male'?'ذكر':'أنثى',الهاتف:r.phone||'',البريد:r.email||'',فصيلة_الدم:r.blood_type||'',الحالة:r.status,التاريخ:new Date(r.created_at).toLocaleDateString('ar-EG')}));fname='المرضى'
+  } else {
+    const{data:d}=await sb.from('invoices').select('invoice_number,total,paid_amount,status,payment_method,created_at,patients(full_name)').eq('organization_id',orgId)
+    data=(d||[]).map(r=>({رقم_الفاتورة:r.invoice_number,المريض:r.patients?.full_name||'',الإجمالي:r.total,المدفوع:r.paid_amount,الحالة:r.status,طريقة_الدفع:r.payment_method||'',التاريخ:new Date(r.created_at).toLocaleDateString('ar-EG')}));fname='الفواتير'
+  }
+  const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(data)
+  XLSX.utils.book_append_sheet(wb,ws,fname);XLSX.writeFile(wb,`سليم_${fname}_${new Date().toISOString().slice(0,10)}.xlsx`)
+  toast(`تم تصدير ${fname}`,'','success')
+}
+
+// ── Settings ──
+async function loadSettings(){
+  const{data:o}=await sb.from('organizations').select('*').eq('id',orgId).single()
+  if(!o)return
+  const fields={name:'set-name',phone:'set-phone',email:'set-email',address:'set-address',tax_number:'set-tax'}
+  Object.entries(fields).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.value=o[k]||''})
+}
+window.saveSettings=async()=>{
+  const row={name:document.getElementById('set-name').value,phone:document.getElementById('set-phone').value,email:document.getElementById('set-email').value,address:document.getElementById('set-address').value,tax_number:document.getElementById('set-tax').value}
+  const{error}=await sb.from('organizations').update(row).eq('id',orgId)
+  if(error){toast('خطأ',error.message,'error');return}
+  document.querySelectorAll('[data-org-name]').forEach(e=>e.textContent=row.name)
+  toast('تم حفظ بيانات العيادة','','success')
+}
+window.changePassword=async()=>{
+  const np=document.getElementById('set-new-pass').value
+  const cp=document.getElementById('set-confirm-pass').value
+  if(!np||np.length<6){toast('6 أحرف على الأقل','','warning');return}
+  if(np!==cp){toast('كلمتا المرور غير متطابقتين','','warning');return}
+  const{error}=await sb.auth.updateUser({password:np})
+  if(error){toast('خطأ',error.message,'error');return}
+  toast('تم تغيير كلمة المرور','','success')
+  ;['set-old-pass','set-new-pass','set-confirm-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''})
+}
+
+// ── User Management ──
+async function loadEmployeesWithEdit(){
+  const[{data},{data:branches}]=await Promise.all([
+    sb.from('profiles').select('*,branches(name)').eq('organization_id',orgId).order('role'),
+    sb.from('branches').select('id,name').eq('organization_id',orgId)
+  ])
+  const roles={admin:'مدير',doctor:'طبيب',reception:'استقبال',accountant:'محاسب'}
+  const tb=document.getElementById('employees-table')
+  tb.innerHTML=(data||[]).map(e=>`<tr><td>${e.full_name}</td><td>${roles[e.role]||e.role}</td><td>${e.phone||'—'}</td><td>${e.branches?.name||'—'}</td><td>${badge(e.is_active?'active':'inactive')}</td><td><button class="btn btn-ghost btn-sm btn-icon" onclick="editEmployee('${e.id}')"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-${e.is_active?'warning':'success'} btn-sm" onclick="toggleEmployee('${e.id}',${!e.is_active})">${e.is_active?'تعليق':'تفعيل'}</button></td></tr>`).join('')||'<tr><td colspan="6" class="table-empty">لا يوجد موظفون</td></tr>'
+  const bsel=document.getElementById('emp-branch')
+  if(bsel)bsel.innerHTML='<option value="">— بلا فرع —</option>'+(branches||[]).map(b=>`<option value="${b.id}">${b.name}</option>`).join('')
+}
+window.editEmployee=async(id)=>{
+  const{data:e}=await sb.from('profiles').select('*').eq('id',id).single()
+  ;['emp-id','emp-name','emp-role','emp-phone','emp-specialty','emp-branch','emp-active'].forEach(k=>{
+    const el=document.getElementById(k);if(!el)return
+    const map={id:e.id,name:e.full_name,role:e.role,phone:e.phone||'',specialty:e.specialty||'',branch:e.branch_id||'',active:String(e.is_active)}
+    el.value=map[k.replace('emp-','')]||''
+  })
+  ;['emp-email','emp-pass'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})
+  document.getElementById('emp-modal-title').textContent='تعديل بيانات الموظف'
+  openModal('modal-employee')
+}
+window.saveEmployee=async()=>{
+  const id=document.getElementById('emp-id').value
+  const name=document.getElementById('emp-name').value.trim()
+  if(!name){toast('الاسم مطلوب','','warning');return}
+  const row={full_name:name,role:document.getElementById('emp-role').value,phone:document.getElementById('emp-phone').value,specialty:document.getElementById('emp-specialty').value,branch_id:document.getElementById('emp-branch').value||null,is_active:document.getElementById('emp-active').value==='true'}
+  if(id){
+    const{error}=await sb.from('profiles').update(row).eq('id',id)
+    if(error){toast('خطأ',error.message,'error');return}
+  } else {
+    row.organization_id=orgId
+    const{error}=await sb.from('profiles').insert(row)
+    if(error){toast('خطأ',error.message,'error');return}
+  }
+  toast(id?'تم التحديث':'تمت الإضافة','','success');closeModal('modal-employee');loadEmployeesWithEdit()
+}
+window.toggleEmployee=async(id,active)=>{
+  await sb.from('profiles').update({is_active:active}).eq('id',id)
+  toast(active?'تم التفعيل':'تم التعليق','','success');loadEmployeesWithEdit()
+}
+
+// ── Realtime ──
+let notifList=[]
+function setupRealtime(){
+  sb.channel('clinic').on('postgres_changes',{event:'INSERT',schema:'public',table:'appointments',filter:`organization_id=eq.${orgId}`},()=>{
+    addNotif('موعد جديد','تمت إضافة موعد جديد');toast('موعد جديد','تمت الإضافة','info');loadDashboard()
+  }).on('postgres_changes',{event:'INSERT',schema:'public',table:'patients',filter:`organization_id=eq.${orgId}`},()=>{
+    addNotif('مريض جديد','تم تسجيل مريض جديد')
+  }).subscribe()
+}
+function addNotif(title,msg){
+  notifList.unshift({title,msg,time:new Date()})
+  const cnt=document.getElementById('notif-count');if(cnt){cnt.style.display='flex';cnt.textContent=notifList.length}
+}
+document.getElementById('notif-btn')?.addEventListener('click',()=>{
+  const el=document.getElementById('notif-list')
+  if(el)el.innerHTML=notifList.length?notifList.map(n=>`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-weight:600;font-size:13px">${n.title}</div><div style="font-size:12px;color:var(--text-muted)">${n.msg}</div><div style="font-size:11px;color:var(--text-light);margin-top:4px">${new Date(n.time).toLocaleTimeString('ar-EG')}</div></div>`).join(''):'<div style="text-align:center;padding:24px;color:var(--text-muted)">لا توجد إشعارات</div>'
+  openModal('modal-notif');const cnt=document.getElementById('notif-count');if(cnt)cnt.style.display='none'
+})
+window.toggleNotif=async()=>{
+  const tog=document.getElementById('notif-toggle'),sl=document.getElementById('notif-slider'),st=document.getElementById('notif-status')
+  if(tog?.checked){
+    const p=await Notification.requestPermission()
+    if(p==='granted'){if(sl)sl.style.background='var(--success)';if(st)st.textContent='مفعّلة ✅'}
+    else{if(tog)tog.checked=false;if(st)st.textContent='تم رفض الإذن'}
+  } else {if(sl)sl.style.background='#ddd';if(st)st.textContent='متوقفة'}
+}
+
+// ── Nav (override with new loaders) ──
+window.nav=id=>{
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'))
+  document.getElementById('page-'+id)?.classList.add('active')
+  document.getElementById('nav-'+id)?.classList.add('active')
+  document.getElementById('topbar-title').textContent=({dashboard:'لوحة التحكم',appointments:'المواعيد',patients:'المرضى',doctors:'الأطباء',employees:'الموظفون',invoices:'الفواتير',inventory:'المخزون',branches:'الفروع',reports:'التقارير',settings:'الإعدادات'})[id]||''
+  ;({appointments:loadAppts,patients:loadPatients,doctors:loadDoctors,employees:loadEmployeesWithEdit,invoices:loadInvoices,inventory:loadInventory,branches:loadBranches,reports:loadReports,settings:loadSettings})[id]?.()
+}
+
+// ── Load selects ──
+async function loadSelects(){
+  const[{data:pts},{data:docs}]=await Promise.all([
+    sb.from('patients').select('id,full_name').eq('organization_id',orgId).order('full_name'),
+    sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
+  ])
+  const ps=document.getElementById('appt-patient'),ds=document.getElementById('appt-doctor')
+  ps.innerHTML='<option value="">— اختر مريض —</option>'+(pts||[]).map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('')
+  ds.innerHTML='<option value="">— اختر طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
+}
+
 // ── Init ──
 await loadSelects()
 await loadDashboard()
+setupRealtime()
 
-// Close modals on overlay click
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}))
-
-// Reset appt modal on open
-document.getElementById('modal-appt').addEventListener('click',()=>{})
 const origOpenModal=window.openModal
 window.openModal=id=>{
   if(id==='modal-appt'){document.getElementById('appt-id').value='';document.getElementById('appt-modal-title').textContent='موعد جديد';document.getElementById('appt-notes').value=''}
   if(id==='modal-patient'){document.getElementById('patient-id').value='';document.getElementById('patient-modal-title').textContent='مريض جديد';['patient-name','patient-dob','patient-phone','patient-email','patient-insurance','patient-address','patient-notes'].forEach(i=>document.getElementById(i).value='')}
+  if(id==='modal-employee'){document.getElementById('emp-id').value='';document.getElementById('emp-modal-title').textContent='موظف جديد';['emp-name','emp-phone','emp-specialty','emp-email','emp-pass'].forEach(i=>document.getElementById(i).value='')}
   origOpenModal(id)
 }

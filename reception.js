@@ -4,10 +4,12 @@ let profile,orgId,allPts=[],allAppts=[],allInvs=[],services=[],posItems=[]
 
 const{data:{user}}=await sb.auth.getUser()
 if(!user){location.href='login.html'}
-const{data:p}=await sb.from('profiles').select('*,organizations(*),branches(*)').eq('id',user.id).single()
+const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).single()
 if(!p||!p.is_active){await sb.auth.signOut();location.href='login.html'}
 if(!['reception','admin','accountant'].includes(p.role)){location.href=p.role==='doctor'?'doctor.html':'admin.html'}
 profile=p;orgId=p.organization_id
+const{data:org}=await sb.from('organizations').select('name').eq('id',orgId).single()
+p.organizations=org||{}
 document.querySelectorAll('[data-user-name]').forEach(e=>e.textContent=p.full_name)
 document.querySelectorAll('[data-user-role]').forEach(e=>e.textContent='موظف استقبال')
 document.querySelectorAll('[data-user-avatar]').forEach(e=>e.textContent=p.full_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase())

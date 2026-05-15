@@ -4,10 +4,21 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>سليم — لوحة الإدارة</title>
+<meta name="theme-color" content="#1B6CA8"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="سليم"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="shared/styles.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+@media print{.sidebar,.topbar,.modal-overlay,.toast-wrap,.btn:not(.print-show){display:none!important}.main-wrap{margin:0!important}.page{display:block!important}.print-header{display:block!important}}
+.print-header{display:none;text-align:center;margin-bottom:20px;border-bottom:2px solid #1B6CA8;padding-bottom:12px}
+</style>
 </head>
 <body>
 
@@ -265,14 +276,66 @@
 
     <!-- ══ REPORTS ══ -->
     <div class="page" id="page-reports">
-      <div class="page-header"><div class="page-header-title">التقارير</div></div>
+      <div class="page-header">
+        <div class="page-header-title">التقارير والإحصائيات</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportExcel('patients')"><i class="fa-solid fa-file-excel"></i> تصدير المرضى</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportExcel('invoices')"><i class="fa-solid fa-file-excel"></i> تصدير الفواتير</button>
+        </div>
+      </div>
       <div class="stats-grid" id="report-stats"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div class="card"><div class="card-header"><span class="card-title">المواعيد حسب الشهر</span></div><div class="card-body"><canvas id="chart-appts" height="200"></canvas></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">الإيرادات حسب الشهر</span></div><div class="card-body"><canvas id="chart-revenue" height="200"></canvas></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">توزيع حالات المواعيد</span></div><div class="card-body"><canvas id="chart-status" height="200"></canvas></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">المرضى الجدد شهرياً</span></div><div class="card-body"><canvas id="chart-patients" height="200"></canvas></div></div>
+      </div>
     </div>
 
     <!-- ══ SETTINGS ══ -->
     <div class="page" id="page-settings">
       <div class="page-header"><div class="page-header-title">الإعدادات</div></div>
-      <div class="card"><div class="card-body" id="settings-body">جاري التحميل...</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="card-header"><span class="card-title"><i class="fa-solid fa-hospital" style="color:var(--primary)"></i> بيانات العيادة</span></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">اسم العيادة</label><input type="text" class="form-control" id="set-name"/></div>
+            <div class="form-group"><label class="form-label">الهاتف</label><input type="tel" class="form-control" id="set-phone"/></div>
+            <div class="form-group"><label class="form-label">البريد الإلكتروني</label><input type="email" class="form-control" id="set-email"/></div>
+            <div class="form-group"><label class="form-label">العنوان</label><input type="text" class="form-control" id="set-address"/></div>
+            <div class="form-group"><label class="form-label">الرقم الضريبي</label><input type="text" class="form-control" id="set-tax"/></div>
+            <button class="btn btn-primary" onclick="saveSettings()"><i class="fa-solid fa-check"></i> حفظ التغييرات</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title"><i class="fa-solid fa-key" style="color:var(--warning)"></i> تغيير كلمة المرور</span></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">كلمة المرور الحالية</label><input type="password" class="form-control" id="set-old-pass"/></div>
+            <div class="form-group"><label class="form-label">كلمة المرور الجديدة</label><input type="password" class="form-control" id="set-new-pass"/></div>
+            <div class="form-group"><label class="form-label">تأكيد كلمة المرور</label><input type="password" class="form-control" id="set-confirm-pass"/></div>
+            <button class="btn btn-warning" onclick="changePassword()" style="color:#fff"><i class="fa-solid fa-shield-alt"></i> تغيير كلمة المرور</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title"><i class="fa-solid fa-bell" style="color:var(--success)"></i> الإشعارات الفورية</span></div>
+          <div class="card-body" id="notif-panel">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <span style="font-size:13px">تلقي إشعارات المواعيد الجديدة</span>
+              <label style="position:relative;display:inline-block;width:44px;height:24px"><input type="checkbox" id="notif-toggle" onchange="toggleNotif()" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;background:#ddd;border-radius:24px;cursor:pointer;transition:.3s" id="notif-slider"></span></label>
+            </div>
+            <div id="notif-status" style="font-size:12px;color:var(--text-muted)">اضغط للتفعيل</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title"><i class="fa-solid fa-info-circle" style="color:var(--primary)"></i> معلومات النظام</span></div>
+          <div class="card-body" style="font-size:13px;line-height:2.5">
+            <div><b>إصدار النظام:</b> سليم v1.0</div>
+            <div><b>قاعدة البيانات:</b> Supabase PostgreSQL</div>
+            <div><b>الاستضافة:</b> GitHub Pages</div>
+            <div><b>تاريخ التطوير:</b> 2026</div>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div><!-- /page-content -->
@@ -406,8 +469,46 @@
   </div>
 </div>
 
-<div class="toast-wrap" id="toast-wrap"></div>
+<!-- Employee Modal -->
+<div class="modal-overlay" id="modal-employee">
+  <div class="modal modal-lg">
+    <div class="modal-header"><span class="modal-title" id="emp-modal-title">موظف جديد</span><button class="modal-close" onclick="closeModal('modal-employee')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="emp-id"/>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">الاسم الكامل *</label><input type="text" class="form-control" id="emp-name"/></div>
+        <div class="form-group"><label class="form-label">الدور *</label>
+          <select class="form-control" id="emp-role">
+            <option value="doctor">طبيب</option><option value="reception">استقبال</option>
+            <option value="accountant">محاسب</option><option value="admin">مدير</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">البريد الإلكتروني *</label><input type="email" class="form-control" id="emp-email"/></div>
+        <div class="form-group"><label class="form-label">الهاتف</label><input type="tel" class="form-control" id="emp-phone"/></div>
+        <div class="form-group"><label class="form-label">التخصص (للأطباء)</label><input type="text" class="form-control" id="emp-specialty"/></div>
+        <div class="form-group"><label class="form-label">الفرع</label><select class="form-control" id="emp-branch"></select></div>
+        <div class="form-group"><label class="form-label">كلمة المرور *</label><input type="password" class="form-control" id="emp-pass" placeholder="للموظفين الجدد فقط"/></div>
+        <div class="form-group"><label class="form-label">الحالة</label>
+          <select class="form-control" id="emp-active"><option value="true">نشط</option><option value="false">غير نشط</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-employee')">إلغاء</button><button class="btn btn-primary" onclick="saveEmployee()"><i class="fa-solid fa-check"></i> حفظ</button></div>
+  </div>
+</div>
 
+<!-- Notification Panel -->
+<div class="modal-overlay" id="modal-notif">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header"><span class="modal-title"><i class="fa-solid fa-bell" style="color:var(--warning)"></i> الإشعارات</span><button class="modal-close" onclick="closeModal('modal-notif')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body" id="notif-list" style="max-height:400px;overflow-y:auto">
+      <div style="text-align:center;color:var(--text-muted);padding:24px"><i class="fa-regular fa-bell-slash" style="font-size:32px"></i><div style="margin-top:8px;font-size:13px">لا توجد إشعارات</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+<script src="pwa-register.js"></script>
 <script type="module" src="admin.js"></script>
 </body>
 </html>
