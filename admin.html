@@ -71,7 +71,15 @@
     <button class="nav-item" onclick="nav('branches')" id="nav-branches">
       <i class="fa-solid fa-code-branch"></i> الفروع
     </button>
-    <button class="nav-item" onclick="nav('settings')" id="nav-settings">
+        <button class="nav-item" onclick="nav('calendar')" id="nav-calendar"><i class="fa-regular fa-calendar"></i> Ø§Ù„ØªÙ‚ÙˆÙŠÙ… Ø§Ù„Ø´Ù‡Ø±ÙŠ</button>
+    <button class="nav-item" onclick="nav('reminders')" id="nav-reminders"><i class="fa-solid fa-bell-ring"></i> ØªØ°ÙƒÙŠØ± Ø§Ù„Ù…Ø±Ø¶Ù‰</button>
+    <button class="nav-item" onclick="nav('financial')" id="nav-financial"><i class="fa-solid fa-chart-pie"></i> Ø§Ù„ØªÙ‚Ø±ÙŠØ± Ø§Ù„Ù…Ø§Ù„ÙŠ</button>
+    <button class="nav-item" onclick="nav('services')" id="nav-services"><i class="fa-solid fa-briefcase-medical"></i> Ø§Ù„Ø®Ø¯Ù…Ø§Øª</button>
+    <button class="nav-item" onclick="nav('contracts')" id="nav-contracts"><i class="fa-solid fa-file-contract"></i> Ø§Ù„ØªØ¹Ø§Ù‚Ø¯Ø§Øª</button>
+    <button class="nav-item" onclick="nav('notifications')" id="nav-notifications"><i class="fa-regular fa-bell"></i> Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</button>
+    <button class="nav-item" onclick="nav('roles')" id="nav-roles"><i class="fa-solid fa-shield-halved"></i> Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª</button>
+    <button class="nav-item" onclick="nav('export')" id="nav-export"><i class="fa-solid fa-file-export"></i> Ù…Ø±ÙƒØ² Ø§Ù„ØªØµØ¯ÙŠØ±</button>
+<button class="nav-item" onclick="nav('settings')" id="nav-settings">
       <i class="fa-solid fa-gear"></i> الإعدادات
     </button>
   </nav>
@@ -122,6 +130,28 @@
         </button>
       </div>
 
+
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div>
+          <div class="welcome-title" id="welcome-msg">Ù…Ø±Ø­Ø¨Ø§Ù‹ ðŸ‘‹</div>
+          <div class="welcome-sub" id="welcome-date"></div>
+        </div>
+        <div class="welcome-stats">
+          <div class="welcome-stat"><div class="welcome-stat-val" id="w-today">â€”</div><div class="welcome-stat-lbl">Ù…ÙˆØ¹Ø¯ Ø§Ù„ÙŠÙˆÙ…</div></div>
+          <div class="welcome-stat"><div class="welcome-stat-val" id="w-pts">â€”</div><div class="welcome-stat-lbl">Ù…Ø±ÙŠØ¶ Ø¬Ø¯ÙŠØ¯</div></div>
+          <div class="welcome-stat"><div class="welcome-stat-val" id="w-rev">â€”</div><div class="welcome-stat-lbl">Ø¥ÙŠØ±Ø§Ø¯ Ø§Ù„ÙŠÙˆÙ…</div></div>
+        </div>
+      </div>
+      <!-- Quick Chips -->
+      <div class="quick-strip">
+        <div class="quick-chip" onclick="nav('appointments');openModal('modal-appt')"><i class="fa-solid fa-calendar-plus"></i> Ù…ÙˆØ¹Ø¯ Ø¬Ø¯ÙŠØ¯</div>
+        <div class="quick-chip" onclick="nav('patients');openModal('modal-patient')"><i class="fa-solid fa-user-plus"></i> Ù…Ø±ÙŠØ¶ Ø¬Ø¯ÙŠØ¯</div>
+        <div class="quick-chip" onclick="nav('invoices')"><i class="fa-solid fa-file-invoice"></i> Ø§Ù„ÙÙˆØ§ØªÙŠØ±</div>
+        <div class="quick-chip" onclick="nav('reports')"><i class="fa-solid fa-chart-bar"></i> Ø§Ù„ØªÙ‚Ø§Ø±ÙŠØ±</div>
+        <div class="quick-chip" onclick="nav('calendar')"><i class="fa-regular fa-calendar"></i> Ø§Ù„ØªÙ‚ÙˆÙŠÙ…</div>
+        <div class="quick-chip" onclick="nav('notifications')"><i class="fa-regular fa-bell"></i> Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</div>
+      </div>
       <!-- Stats -->
       <div class="stats-grid" id="stats-grid">
         <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد اليوم</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-day"></i></div></div><div class="stat-value" id="stat-today">—</div></div>
@@ -497,6 +527,202 @@
   </div>
 </div>
 
+
+    <!-- PAGE: CALENDAR -->
+    <div class="page" id="page-calendar">
+      <div class="page-header">
+        <div><div class="page-header-title"><i class="fa-regular fa-calendar" style="color:var(--primary)"></i> Ø§Ù„ØªÙ‚ÙˆÙŠÙ… Ø§Ù„Ø´Ù‡Ø±ÙŠ</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-right"></i></button>
+          <span id="cal-label" style="font-weight:700;font-size:15px;min-width:140px;text-align:center;line-height:36px"></span>
+          <button class="btn btn-ghost" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="btn btn-primary" onclick="nav('appointments');openModal('modal-appt')"><i class="fa-solid fa-plus"></i> Ù…ÙˆØ¹Ø¯</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="cal-grid" style="margin-bottom:8px">
+            <div class="cal-day-name">Ø£Ø­Ø¯</div><div class="cal-day-name">Ø³Ø¨Øª</div>
+            <div class="cal-day-name">Ø¬Ù…Ø¹Ø©</div><div class="cal-day-name">Ø®Ù…ÙŠØ³</div>
+            <div class="cal-day-name">Ø£Ø±Ø¨Ø¹Ø§Ø¡</div><div class="cal-day-name">Ø«Ù„Ø§Ø«Ø§Ø¡</div>
+            <div class="cal-day-name">Ø§Ø«Ù†ÙŠÙ†</div>
+          </div>
+          <div class="cal-grid" id="cal-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: FINANCIAL -->
+    <div class="page" id="page-financial">
+      <div class="page-header">
+        <div><div class="page-header-title"><i class="fa-solid fa-chart-pie" style="color:var(--primary)"></i> Ø§Ù„ØªÙ‚Ø±ÙŠØ± Ø§Ù„Ù…Ø§Ù„ÙŠ</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="loadFinancial('month')">Ù‡Ø°Ø§ Ø§Ù„Ø´Ù‡Ø±</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadFinancial('quarter')">Ø§Ù„Ø±Ø¨Ø¹</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadFinancial('year')">Ø§Ù„Ø³Ù†Ø©</button>
+        </div>
+      </div>
+      <div class="fin-kpi-grid" id="fin-kpi-grid">
+        <div class="fin-kpi"><div class="fin-kpi-val" id="fin-revenue">â€”</div><div class="fin-kpi-label">Ø§Ù„Ø¥ÙŠØ±Ø§Ø¯Ø§Øª</div></div>
+        <div class="fin-kpi success"><div class="fin-kpi-val" id="fin-paid">â€”</div><div class="fin-kpi-label">Ø§Ù„Ù…Ø­ØµÙ‘Ù„</div></div>
+        <div class="fin-kpi danger"><div class="fin-kpi-val" id="fin-pending">â€”</div><div class="fin-kpi-label">Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ</div></div>
+        <div class="fin-kpi warning"><div class="fin-kpi-val" id="fin-invoices">â€”</div><div class="fin-kpi-label">Ø¹Ø¯Ø¯ Ø§Ù„ÙÙˆØ§ØªÙŠØ±</div></div>
+      </div>
+      <div class="grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card"><div class="card-header"><span class="card-title">Ø·Ø±Ù‚ Ø§Ù„Ø¯ÙØ¹</span></div>
+          <div class="card-body"><div id="fin-pay-bar-wrap"></div></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">Ø£Ø¹Ù„Ù‰ Ø§Ù„Ø®Ø¯Ù…Ø§Øª Ø¥ÙŠØ±Ø§Ø¯Ø§Ù‹</span></div>
+          <div class="card-body" id="fin-top-services"></div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: NOTIFICATIONS -->
+    <div class="page" id="page-notifications">
+      <div class="page-header">
+        <div><div class="page-header-title"><i class="fa-regular fa-bell" style="color:var(--primary)"></i> Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="markAllRead()"><i class="fa-solid fa-check-double"></i> ØªØ­Ø¯ÙŠØ¯ Ø§Ù„ÙƒÙ„ ÙƒÙ…Ù‚Ø±ÙˆØ¡</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-primary btn-sm" onclick="filterNotif('all')" id="nf-all">Ø§Ù„ÙƒÙ„</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterNotif('appt')" id="nf-appt">Ù…ÙˆØ§Ø¹ÙŠØ¯</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterNotif('patient')" id="nf-patient">Ù…Ø±Ø¶Ù‰</button>
+        <button class="btn btn-ghost btn-sm" onclick="filterNotif('inv')" id="nf-inv">ÙÙˆØ§ØªÙŠØ±</button>
+      </div>
+      <div id="notif-page-list"><div style="text-align:center;padding:40px;color:var(--text-muted)"><i class="fa-regular fa-bell-slash" style="font-size:36px"></i><div style="margin-top:12px">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</div></div></div>
+    </div>
+
+    <!-- PAGE: SERVICES -->
+    <div class="page" id="page-services">
+      <div class="page-header">
+        <div><div class="page-header-title"><i class="fa-solid fa-briefcase-medical" style="color:var(--primary)"></i> Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø®Ø¯Ù…Ø§Øª</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-service')"><i class="fa-solid fa-plus"></i> Ø®Ø¯Ù…Ø© Ø¬Ø¯ÙŠØ¯Ø©</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="search-bar" style="max-width:280px"><i class="fa-solid fa-search"></i><input class="form-control" id="svc-search" placeholder="Ø¨Ø­Ø«..." oninput="filterServices()"/></div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Ø§Ø³Ù… Ø§Ù„Ø®Ø¯Ù…Ø©</th><th>Ø§Ù„ÙØ¦Ø©</th><th>Ø§Ù„Ø³Ø¹Ø±</th><th>Ø§Ù„Ù…Ø¯Ø©</th><th>Ø§Ù„Ø­Ø§Ù„Ø©</th><th>Ø¥Ø¬Ø±Ø§Ø¡</th></tr></thead>
+          <tbody id="services-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: CONTRACTS -->
+    <div class="page" id="page-contracts">
+      <div class="page-header">
+        <div><div class="page-header-title"><i class="fa-solid fa-file-contract" style="color:var(--primary)"></i> Ø§Ù„ØªØ¹Ø§Ù‚Ø¯Ø§Øª ÙˆØ§Ù„ØªØ£Ù…ÙŠÙ†</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-contract')"><i class="fa-solid fa-plus"></i> Ø¹Ù‚Ø¯ Ø¬Ø¯ÙŠØ¯</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>Ø¬Ù‡Ø© Ø§Ù„ØªØ¹Ø§Ù‚Ø¯</th><th>Ù†ÙˆØ¹</th><th>Ù†Ø³Ø¨Ø© Ø§Ù„ØªØºØ·ÙŠØ©</th><th>ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡</th><th>Ø§Ù„Ø­Ø§Ù„Ø©</th><th>Ø¥Ø¬Ø±Ø§Ø¡</th></tr></thead>
+          <tbody id="contracts-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: REMINDERS -->
+    <div class="page" id="page-reminders">
+      <div class="page-header">
+        <div><div class="page-header-title"><i class="fa-solid fa-bell-ring" style="color:var(--primary)"></i> ØªØ°ÙƒÙŠØ± Ø§Ù„Ù…Ø±Ø¶Ù‰</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Ø¥Ø±Ø³Ø§Ù„ ØªØ°ÙƒÙŠØ±</span></div>
+          <div class="card-body">
+            <div style="display:flex;gap:8px;margin-bottom:16px">
+              <button class="channel-btn active" id="ch-whatsapp" onclick="selectChannel('whatsapp')"><i class="fa-brands fa-whatsapp"></i> ÙˆØ§ØªØ³Ø§Ø¨</button>
+              <button class="channel-btn" id="ch-sms" onclick="selectChannel('sms')"><i class="fa-solid fa-sms"></i> SMS</button>
+            </div>
+            <div class="form-group"><label class="form-label">Ø§Ø®ØªØ± Ø§Ù„Ù…Ø±ÙŠØ¶</label><select class="form-control" id="reminder-patient"></select></div>
+            <div class="form-group"><label class="form-label">Ù†Øµ Ø§Ù„Ø±Ø³Ø§Ù„Ø©</label><textarea class="form-control" id="reminder-msg" rows="4"></textarea></div>
+            <button class="btn btn-primary" style="width:100%" onclick="sendReminder()"><i class="fa-solid fa-paper-plane"></i> Ø¥Ø±Ø³Ø§Ù„</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Ù…ÙˆØ§Ø¹ÙŠØ¯ ØºØ¯Ø§Ù‹</span></div>
+          <div class="card-body" id="tomorrow-appts"><div style="text-align:center;color:var(--text-muted)">Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: ROLES -->
+    <div class="page" id="page-roles">
+      <div class="page-header">
+        <div><div class="page-header-title"><i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i> Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª ÙˆØ§Ù„Ø£Ø¯ÙˆØ§Ø±</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="role-card selected" id="role-admin" onclick="selectRole('admin')">
+            <div style="font-size:20px;margin-bottom:6px">ðŸ‘‘</div>
+            <div style="font-weight:700">Ù…Ø¯ÙŠØ± Ø§Ù„Ù†Ø¸Ø§Ù…</div>
+            <div style="font-size:11px;color:var(--text-muted)">ÙƒÙ„ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª</div>
+          </div>
+          <div class="role-card" id="role-doctor" onclick="selectRole('doctor')">
+            <div style="font-size:20px;margin-bottom:6px">ðŸ©º</div>
+            <div style="font-weight:700">Ø§Ù„Ø·Ø¨ÙŠØ¨</div>
+            <div style="font-size:11px;color:var(--text-muted)">Ø§Ù„Ù…Ø±Ø¶Ù‰ ÙˆØ§Ù„ÙˆØµÙØ§Øª</div>
+          </div>
+          <div class="role-card" id="role-reception" onclick="selectRole('reception')">
+            <div style="font-size:20px;margin-bottom:6px">ðŸ–¥ï¸</div>
+            <div style="font-weight:700">Ø§Ù„Ø§Ø³ØªÙ‚Ø¨Ø§Ù„</div>
+            <div style="font-size:11px;color:var(--text-muted)">Ø§Ù„Ù…ÙˆØ§Ø¹ÙŠØ¯ ÙˆØ§Ù„ÙÙˆØ§ØªÙŠØ±</div>
+          </div>
+          <div class="role-card" id="role-accountant" onclick="selectRole('accountant')">
+            <div style="font-size:20px;margin-bottom:6px">ðŸ’°</div>
+            <div style="font-weight:700">Ø§Ù„Ù…Ø­Ø§Ø³Ø¨</div>
+            <div style="font-size:11px;color:var(--text-muted)">Ø§Ù„ÙÙˆØ§ØªÙŠØ± ÙÙ‚Ø·</div>
+          </div>
+        </div>
+        <div class="card"><div class="card-body" id="roles-perms">Ø§Ø®ØªØ± Ø¯ÙˆØ±Ø§Ù‹ Ù„Ø¹Ø±Ø¶ ØµÙ„Ø§Ø­ÙŠØ§ØªÙ‡</div></div>
+      </div>
+    </div>
+
+    <!-- PAGE: EXPORT -->
+    <div class="page" id="page-export">
+      <div class="page-header">
+        <div><div class="page-header-title"><i class="fa-solid fa-file-export" style="color:var(--primary)"></i> Ù…Ø±ÙƒØ² Ø§Ù„ØªØµØ¯ÙŠØ±</div></div>
+      </div>
+      <div style="max-width:600px">
+        <div class="export-option" onclick="exportData('patients')">
+          <div class="export-icon" style="background:#DBEAFE;color:#1D4ED8"><i class="fa-solid fa-users"></i></div>
+          <div><div style="font-weight:600;margin-bottom:2px">ØªØµØ¯ÙŠØ± Ø§Ù„Ù…Ø±Ø¶Ù‰</div><div style="font-size:12px;color:var(--text-muted)">Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…Ø±Ø¶Ù‰ Ø§Ù„ÙƒØ§Ù…Ù„Ø© Ø¨Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª</div></div>
+          <i class="fa-solid fa-download" style="margin-right:auto;color:var(--text-light)"></i>
+        </div>
+        <div class="export-option" onclick="exportData('invoices')">
+          <div class="export-icon" style="background:#D1FAE5;color:#065F46"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+          <div><div style="font-weight:600;margin-bottom:2px">ØªØµØ¯ÙŠØ± Ø§Ù„ÙÙˆØ§ØªÙŠØ±</div><div style="font-size:12px;color:var(--text-muted)">ØªÙ‚Ø±ÙŠØ± Ù…Ø§Ù„ÙŠ ÙƒØ§Ù…Ù„ Ø¨Ø¬Ù…ÙŠØ¹ Ø§Ù„ÙÙˆØ§ØªÙŠØ±</div></div>
+          <i class="fa-solid fa-download" style="margin-right:auto;color:var(--text-light)"></i>
+        </div>
+        <div class="export-option" onclick="exportData('appointments')">
+          <div class="export-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fa-solid fa-calendar-check"></i></div>
+          <div><div style="font-weight:600;margin-bottom:2px">ØªØµØ¯ÙŠØ± Ø§Ù„Ù…ÙˆØ§Ø¹ÙŠØ¯</div><div style="font-size:12px;color:var(--text-muted)">Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…ÙˆØ§Ø¹ÙŠØ¯ Ù…Ø¹ Ø­Ø§Ù„Ø§ØªÙ‡Ø§</div></div>
+          <i class="fa-solid fa-download" style="margin-right:auto;color:var(--text-light)"></i>
+        </div>
+        <div class="export-option" onclick="exportData('employees')">
+          <div class="export-icon" style="background:#FEF3C7;color:#92400E"><i class="fa-solid fa-id-badge"></i></div>
+          <div><div style="font-weight:600;margin-bottom:2px">ØªØµØ¯ÙŠØ± Ø§Ù„Ù…ÙˆØ¸ÙÙŠÙ†</div><div style="font-size:12px;color:var(--text-muted)">Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ÙƒÙˆØ§Ø¯Ø± Ø§Ù„Ø¨Ø´Ø±ÙŠØ©</div></div>
+          <i class="fa-solid fa-download" style="margin-right:auto;color:var(--text-light)"></i>
+        </div>
+      </div>
+    </div>
+<!-- Service Modal -->
+<div class="modal-overlay" id="modal-service">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Ø®Ø¯Ù…Ø© Ø¬Ø¯ÙŠØ¯Ø©</span><button class="modal-close" onclick="closeModal('modal-service')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">Ø§Ø³Ù… Ø§Ù„Ø®Ø¯Ù…Ø© *</label><input type="text" class="form-control" id="svc-name"/></div>
+        <div class="form-group"><label class="form-label">Ø§Ù„ÙØ¦Ø©</label><input type="text" class="form-control" id="svc-category" placeholder="Ù…Ø«Ø§Ù„: ÙƒØ´ÙØŒ ØªØ­Ø§Ù„ÙŠÙ„..."/></div>
+        <div class="form-group"><label class="form-label">Ø§Ù„Ø³Ø¹Ø± *</label><input type="number" class="form-control" id="svc-price"/></div>
+        <div class="form-group"><label class="form-label">Ø§Ù„Ù…Ø¯Ø© (Ø¯Ù‚ÙŠÙ‚Ø©)</label><input type="number" class="form-control" id="svc-duration" value="30"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">ÙˆØµÙ</label><textarea class="form-control" id="svc-desc" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-service')">Ø¥Ù„ØºØ§Ø¡</button><button class="btn btn-primary" onclick="saveService()"><i class="fa-solid fa-check"></i> Ø­ÙØ¸</button></div>
+  </div>
+</div>
 <!-- Notification Panel -->
 <div class="modal-overlay" id="modal-notif">
   <div class="modal" style="max-width:360px">
@@ -507,6 +733,26 @@
   </div>
 </div>
 
+
+<!-- Global Search -->
+<div class="search-global-overlay" id="search-overlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-global-modal">
+    <div class="search-global-bar">
+      <i class="fa-solid fa-magnifying-glass" style="color:var(--text-light)"></i>
+      <input class="search-global-input" id="search-input" placeholder="Ø§Ø¨Ø­Ø« Ø¹Ù† Ù…Ø±ÙŠØ¶ØŒ Ù…ÙˆØ¹Ø¯ØŒ ÙØ§ØªÙˆØ±Ø©..." oninput="doSearch(this.value)" autofocus/>
+      <span style="font-size:11px;color:var(--text-light)">ESC Ù„Ù„Ø¥ØºÙ„Ø§Ù‚</span>
+    </div>
+    <div class="search-global-results" id="search-results">
+      <div class="search-section-label">Ø§Ù„Ø§Ø®ØªØµØ§Ø±Ø§Øª Ø§Ù„Ø³Ø±ÙŠØ¹Ø©</div>
+      <div class="search-result-row" onclick="nav('appointments');closeSearch()"><div class="search-result-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar"></i></div><div><div class="search-result-title">Ø§Ù„Ù…ÙˆØ§Ø¹ÙŠØ¯</div><div class="search-result-sub">Ø¹Ø±Ø¶ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…ÙˆØ§Ø¹ÙŠØ¯</div></div></div>
+      <div class="search-result-row" onclick="nav('patients');closeSearch()"><div class="search-result-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-users"></i></div><div><div class="search-result-title">Ø§Ù„Ù…Ø±Ø¶Ù‰</div><div class="search-result-sub">Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…Ø±Ø¶Ù‰</div></div></div>
+      <div class="search-result-row" onclick="nav('invoices');closeSearch()"><div class="search-result-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-file-invoice"></i></div><div><div class="search-result-title">Ø§Ù„ÙÙˆØ§ØªÙŠØ±</div><div class="search-result-sub">Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ÙÙˆØ§ØªÙŠØ±</div></div></div>
+      <div class="search-result-row" onclick="nav('reports');closeSearch()"><div class="search-result-icon" style="background:#DBEAFE;color:#1D4ED8"><i class="fa-solid fa-chart-bar"></i></div><div><div class="search-result-title">Ø§Ù„ØªÙ‚Ø§Ø±ÙŠØ±</div><div class="search-result-sub">ØªÙ‚Ø§Ø±ÙŠØ± ÙˆØ±Ø³ÙˆÙ… Ø¨ÙŠØ§Ù†ÙŠØ©</div></div></div>
+    </div>
+    <div class="search-global-footer"><span><kbd>Enter</kbd> Ù„Ù„Ø§Ù†ØªÙ‚Ø§Ù„</span><span><kbd>Esc</kbd> Ù„Ù„Ø¥ØºÙ„Ø§Ù‚</span></div>
+  </div>
+</div>
+<div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
 <div class="toast-wrap" id="toast-wrap"></div>
 <script src="pwa-register.js"></script>
 <script type="module" src="admin.js"></script>
