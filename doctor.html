@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>سليم — لوحة الطبيب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="shared/styles.css"/>
+</head>
+<body>
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">ZC</div>
+    <div><div class="sidebar-logo-text">سليم</div><div class="sidebar-logo-sub" data-org-name>نظام العيادة</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">الرئيسية</div>
+    <button class="nav-item active" onclick="nav('schedule')" id="nav-schedule"><i class="fa-solid fa-calendar-day"></i> جدولي اليوم</button>
+    <div class="nav-section-title">المرضى</div>
+    <button class="nav-item" onclick="nav('patients')" id="nav-patients"><i class="fa-solid fa-users"></i> مرضاي</button>
+    <button class="nav-item" onclick="nav('prescriptions')" id="nav-prescriptions"><i class="fa-solid fa-prescription"></i> الوصفات</button>
+    <button class="nav-item" onclick="nav('lab')" id="nav-lab"><i class="fa-solid fa-flask"></i> طلبات المختبر</button>
+    <div class="nav-section-title">الجدول</div>
+    <button class="nav-item" onclick="nav('week')" id="nav-week"><i class="fa-solid fa-calendar-week"></i> الجدول الأسبوعي</button>
+  </nav>
+  <div class="sidebar-user">
+    <div class="sidebar-user-inner" onclick="doSignOut()">
+      <div class="sidebar-avatar" data-user-avatar>DR</div>
+      <div><div class="sidebar-user-name" data-user-name>جاري...</div><div class="sidebar-user-role" data-user-role></div></div>
+      <i class="fa-solid fa-arrow-right-from-bracket" style="color:rgba(255,255,255,.3);font-size:12px;margin-right:auto"></i>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <header class="topbar">
+    <div><div class="topbar-title" id="topbar-title">جدولي اليوم</div><div class="topbar-subtitle" id="topbar-date"></div></div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" id="notif-btn"><i class="fa-regular fa-bell"></i></button>
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- SCHEDULE -->
+    <div class="page active" id="page-schedule">
+      <div class="page-header">
+        <div><div class="page-header-title">جدولي اليوم</div><div class="page-header-sub" id="sched-date"></div></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد اليوم</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-day"></i></div></div><div class="stat-value" id="d-stat-today">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مكتملة</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-check-circle"></i></div></div><div class="stat-value" id="d-stat-done">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">في الانتظار</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-clock"></i></div></div><div class="stat-value" id="d-stat-pending">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي مرضاي</span><div class="stat-icon" style="background:#DBEAFE;color:#1D4ED8"><i class="fa-solid fa-users"></i></div></div><div class="stat-value" id="d-stat-pts">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title"><i class="fa-solid fa-list" style="color:var(--primary)"></i> قائمة المواعيد</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>المريض</th><th>الوقت</th><th>النوع</th><th>الحالة</th><th>إجراء</th></tr></thead>
+            <tbody id="sched-table"><tr><td colspan="5" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATIENTS -->
+    <div class="page" id="page-patients">
+      <div class="page-header"><div class="page-header-title">مرضاي</div></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="search-bar" style="max-width:280px"><i class="fa-solid fa-search"></i><input class="form-control" id="dp-search" placeholder="بحث..." oninput="filterDrPatients()"/></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الرقم الطبي</th><th>المريض</th><th>العمر</th><th>الهاتف</th><th>آخر زيارة</th><th>إجراء</th></tr></thead>
+            <tbody id="dr-patients-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATIENT PROFILE -->
+    <div class="page" id="page-patient-profile">
+      <div class="page-header">
+        <div><div class="page-header-title" id="prof-name">ملف المريض</div><div class="page-header-sub" id="prof-mrn"></div></div>
+        <button class="btn btn-ghost" onclick="nav('patients')"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><span class="card-title">البيانات الأساسية</span></div>
+            <div class="card-body" id="prof-info"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">الحساسيات</span></div>
+            <div class="card-body" id="prof-allergies"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header">
+              <span class="card-title">إضافة تشخيص / ملاحظة</span>
+              <button class="btn btn-primary btn-sm" onclick="saveDiagnosis()"><i class="fa-solid fa-plus"></i> حفظ</button>
+            </div>
+            <div class="card-body">
+              <input type="hidden" id="diag-patient-id"/>
+              <div class="form-group"><label class="form-label">التشخيص</label><input type="text" class="form-control" id="diag-text"/></div>
+              <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="diag-notes" rows="2"></textarea></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">المواعيد السابقة</span></div>
+            <div class="table-wrap">
+              <table><thead><tr><th>التاريخ</th><th>النوع</th><th>الحالة</th></tr></thead>
+              <tbody id="prof-appts"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRESCRIPTIONS -->
+    <div class="page" id="page-prescriptions">
+      <div class="page-header">
+        <div class="page-header-title">الوصفات الطبية</div>
+        <button class="btn btn-primary" onclick="openModal('modal-rx')"><i class="fa-solid fa-plus"></i> وصفة جديدة</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>المريض</th><th>التشخيص</th><th>التاريخ</th><th>صالحة حتى</th><th>إجراء</th></tr></thead>
+            <tbody id="rx-table"><tr><td colspan="5" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAB -->
+    <div class="page" id="page-lab">
+      <div class="page-header">
+        <div class="page-header-title">طلبات المختبر</div>
+        <button class="btn btn-primary" onclick="openModal('modal-lab')"><i class="fa-solid fa-plus"></i> طلب جديد</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>المريض</th><th>الأولوية</th><th>الحالة</th><th>التاريخ</th><th>ملاحظات</th></tr></thead>
+            <tbody id="lab-table"><tr><td colspan="5" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEK -->
+    <div class="page" id="page-week">
+      <div class="page-header"><div class="page-header-title">الجدول الأسبوعي</div></div>
+      <div class="card"><div class="card-body" id="week-grid" style="overflow-x:auto"></div></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-rx">
+  <div class="modal modal-lg">
+    <div class="modal-header"><span class="modal-title">وصفة طبية جديدة</span><button class="modal-close" onclick="closeModal('modal-rx')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">المريض *</label><select class="form-control" id="rx-patient"></select></div>
+        <div class="form-group"><label class="form-label">صالحة حتى</label><input type="date" class="form-control" id="rx-valid"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">التشخيص</label><input type="text" class="form-control" id="rx-diag"/></div>
+      <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="rx-notes" rows="2"></textarea></div>
+      <div style="margin-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><strong style="font-size:13px">الأدوية</strong><button class="btn btn-ghost btn-sm" onclick="addDrugRow()"><i class="fa-solid fa-plus"></i> إضافة دواء</button></div>
+        <div id="drugs-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-rx')">إلغاء</button><button class="btn btn-primary" onclick="saveRx()"><i class="fa-solid fa-check"></i> حفظ</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-lab">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">طلب مختبر جديد</span><button class="modal-close" onclick="closeModal('modal-lab')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">المريض *</label><select class="form-control" id="lab-patient"></select></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">الأولوية</label><select class="form-control" id="lab-priority"><option value="normal">عادي</option><option value="urgent">عاجل</option><option value="stat">فوري</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">التحاليل المطلوبة</label><textarea class="form-control" id="lab-tests" rows="3" placeholder="مثال: CBC, Blood Sugar, Liver Functions..."></textarea></div>
+      <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="lab-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-lab')">إلغاء</button><button class="btn btn-primary" onclick="saveLabOrder()"><i class="fa-solid fa-check"></i> إرسال</button></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+<script type="module" src="doctor.js"></script>
+</body>
+</html>

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>سليم — تسجيل الدخول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root {
+  --primary: #1B6CA8; --primary-dark: #145289; --primary-light: #E8F2FB;
+  --primary-mid: #3A8FCC;
+  --success: #10B981; --success-light: #D1FAE5;
+  --danger: #EF4444; --danger-light: #FEE2E2;
+  --warning: #F59E0B;
+  --bg: #F0F4F8; --card: #FFFFFF;
+  --text: #1E293B; --text-muted: #64748B; --text-light: #94A3B8;
+  --border: #E2E8F0;
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.10);
+  --radius: 10px; --font: 'IBM Plex Sans Arabic', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+button{cursor:pointer;font-family:var(--font)}
+input{font-family:var(--font)}
+
+/* LAYOUT */
+.login-screen{display:flex;align-items:stretch;min-height:100vh}
+
+/* LEFT — Branding */
+.login-left{
+  flex:1;
+  background:linear-gradient(150deg,#0F2744 0%,#1B4F8A 50%,#1B6CA8 100%);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:48px;position:relative;overflow:hidden;
+}
+.login-left::before{
+  content:'';position:absolute;
+  width:360px;height:360px;border-radius:50%;
+  background:rgba(255,255,255,.04);top:-80px;left:-80px;
+}
+.login-left::after{
+  content:'';position:absolute;
+  width:240px;height:240px;border-radius:50%;
+  background:rgba(255,255,255,.03);bottom:-60px;right:-60px;
+}
+.login-brand{position:relative;z-index:1;text-align:center;margin-bottom:48px}
+.login-brand-icon{
+  width:72px;height:72px;border-radius:20px;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:800;color:#fff;margin:0 auto 16px;
+}
+.login-brand-name{font-size:26px;font-weight:700;color:#fff;margin-bottom:6px}
+.login-brand-sub{font-size:14px;color:rgba(255,255,255,.6)}
+.login-features{position:relative;z-index:1;width:100%;max-width:340px}
+.login-feat{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 18px;border-radius:12px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  margin-bottom:12px;
+}
+.login-feat-icon{
+  width:38px;height:38px;border-radius:10px;
+  background:rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:rgba(255,255,255,.9);flex-shrink:0;
+}
+.login-feat-text{color:rgba(255,255,255,.85);font-size:13px;font-weight:500}
+.login-feat-sub{color:rgba(255,255,255,.45);font-size:11px;margin-top:2px}
+.login-version{position:absolute;bottom:16px;font-size:11px;color:rgba(255,255,255,.25)}
+
+/* RIGHT — Form */
+.login-right{
+  width:480px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:48px 56px;background:var(--card);
+  box-shadow:-4px 0 24px rgba(0,0,0,.06);
+}
+.login-form-wrap{width:100%;max-width:360px}
+.login-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px}
+.login-subtitle{font-size:13px;color:var(--text-muted);margin-bottom:32px}
+
+/* Inputs */
+.login-input-group{position:relative;margin-bottom:16px}
+.login-input-icon{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:var(--text-light);font-size:15px;pointer-events:none;
+}
+.login-input{
+  width:100%;padding:12px 42px 12px 14px;
+  border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;color:var(--text);background:var(--card);
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.login-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,108,168,.12)}
+.login-input.error{border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+.login-input-toggle{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:var(--text-light);font-size:14px;cursor:pointer;
+  background:none;border:none;padding:0;
+}
+.login-input-toggle:hover{color:var(--primary)}
+
+/* Error message */
+.login-error-msg{
+  font-size:12px;color:var(--danger);
+  margin-top:-10px;margin-bottom:12px;
+  display:flex;align-items:center;gap:5px;
+  padding:8px 12px;background:var(--danger-light);
+  border-radius:8px;
+}
+
+/* Options */
+.login-options{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;font-size:13px;
+}
+.login-remember{display:flex;align-items:center;gap:7px;cursor:pointer;color:var(--text-muted)}
+.login-remember input{accent-color:var(--primary);width:15px;height:15px}
+.login-forgot{color:var(--primary);cursor:pointer;font-weight:500}
+.login-forgot:hover{text-decoration:underline}
+
+/* Button */
+.login-btn{
+  width:100%;padding:13px;border-radius:10px;
+  background:var(--primary);color:#fff;
+  font-size:15px;font-weight:600;border:none;
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.login-btn:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(27,108,168,.3)}
+.login-btn:active{transform:none}
+.login-btn:disabled{opacity:.7;cursor:not-allowed;transform:none}
+.spinner{
+  width:18px;height:18px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.login-btn.loading .spinner{display:block}
+.login-btn.loading .btn-text{display:none}
+
+/* Divider */
+.login-divider{
+  display:flex;align-items:center;gap:12px;
+  margin:24px 0;color:var(--text-light);font-size:12px;
+}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Quick Accounts */
+.login-quick-accounts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.login-quick-btn{
+  padding:10px 12px;border:1.5px solid var(--border);
+  border-radius:8px;cursor:pointer;background:transparent;
+  transition:all .15s;display:flex;align-items:center;gap:8px;
+}
+.login-quick-btn:hover{border-color:var(--primary);background:var(--primary-light)}
+.login-quick-avatar{
+  width:28px;height:28px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;
+}
+.login-quick-info{text-align:right;flex:1}
+.login-quick-name{font-size:12px;font-weight:600;color:var(--text)}
+.login-quick-role{font-size:10px;color:var(--text-muted)}
+.login-footer{margin-top:32px;text-align:center;font-size:12px;color:var(--text-light)}
+
+/* Forgot Password */
+.forgot-panel{display:none;width:100%;max-width:360px}
+.forgot-panel.show{display:block}
+.login-form-wrap.hide{display:none}
+.otp-wrap{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.otp-input{
+  width:50px;height:56px;border:1.5px solid var(--border);
+  border-radius:10px;text-align:center;font-size:22px;font-weight:700;
+  color:var(--primary);outline:none;transition:border-color .15s;
+}
+.otp-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,108,168,.12)}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-radius:10px;background:var(--card);border:1px solid var(--border);
+  box-shadow:var(--shadow-lg);font-size:13px;min-width:260px;max-width:340px;
+  animation:toastIn .25s ease;
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:none}}
+.toast-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.toast-body{flex:1}.toast-title{font-weight:600;font-size:13px}.toast-msg{color:var(--text-muted);font-size:12px}
+
+/* Responsive */
+@media(max-width:768px){
+  .login-left{display:none}
+  .login-right{width:100%;padding:32px 24px}
+}
+</style>
+</head>
+<body>
+
+<div class="login-screen">
+
+  <!-- LEFT: Branding -->
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-brand-icon">ZC</div>
+      <div class="login-brand-name">سليم</div>
+      <div class="login-brand-sub">نظام إدارة العيادات السحابي</div>
+    </div>
+    <div class="login-features">
+      <div class="login-feat">
+        <div class="login-feat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+          <div class="login-feat-text">بيانات آمنة ومشفرة</div>
+          <div class="login-feat-sub">تشفير SSL + مصادقة ثنائية</div>
+        </div>
+      </div>
+      <div class="login-feat">
+        <div class="login-feat-icon"><i class="fa-solid fa-cloud"></i></div>
+        <div>
+          <div class="login-feat-text">سحابي بالكامل</div>
+          <div class="login-feat-sub">وصول من أي مكان في أي وقت</div>
+        </div>
+      </div>
+      <div class="login-feat">
+        <div class="login-feat-icon"><i class="fa-solid fa-code-branch"></i></div>
+        <div>
+          <div class="login-feat-text">إدارة متعددة الفروع</div>
+          <div class="login-feat-sub">تحكم كامل من لوحة واحدة</div>
+        </div>
+      </div>
+      <div class="login-feat">
+        <div class="login-feat-icon"><i class="fa-solid fa-chart-line"></i></div>
+        <div>
+          <div class="login-feat-text">تقارير وتحليلات لحظية</div>
+          <div class="login-feat-sub">قرارات مبنية على بيانات حقيقية</div>
+        </div>
+      </div>
+    </div>
+    <div class="login-version">سليم v1.0 · جميع الحقوق محفوظة © 2026</div>
+  </div>
+
+  <!-- RIGHT: Form -->
+  <div class="login-right">
+
+    <!-- MAIN LOGIN FORM -->
+    <div class="login-form-wrap" id="login-main">
+      <div class="login-title">مرحباً بعودتك 👋</div>
+      <div class="login-subtitle">سجّل دخولك للمتابعة إلى لوحة التحكم</div>
+
+      <div class="login-input-group">
+        <i class="fa-regular fa-envelope login-input-icon"></i>
+        <input class="login-input" id="login-email" type="email"
+          placeholder="البريد الإلكتروني"
+          oninput="clearError()"
+          onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+
+      <div class="login-input-group">
+        <i class="fa-solid fa-lock login-input-icon"></i>
+        <input class="login-input" id="login-pass" type="password"
+          placeholder="كلمة المرور"
+          oninput="clearError()"
+          onkeydown="if(event.key==='Enter')doLogin()"/>
+        <button class="login-input-toggle" onclick="togglePass()" tabindex="-1">
+          <i class="fa-regular fa-eye" id="pass-eye"></i>
+        </button>
+      </div>
+
+      <div class="login-error-msg" id="login-error" style="display:none">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="login-error-text">البريد الإلكتروني أو كلمة المرور غير صحيحة</span>
+      </div>
+
+      <div class="login-options">
+        <label class="login-remember">
+          <input type="checkbox" id="remember-me" checked/>
+          تذكرني
+        </label>
+        <span class="login-forgot" onclick="showForgot()">نسيت كلمة المرور؟</span>
+      </div>
+
+      <button class="login-btn" id="login-btn" onclick="doLogin()">
+        <div class="spinner"></div>
+        <span class="btn-text"><i class="fa-solid fa-arrow-right-to-bracket"></i> تسجيل الدخول</span>
+      </button>
+
+      <div class="login-divider">أو ادخل كـ (تجريبي)</div>
+
+      <div class="login-quick-accounts" id="quick-accounts">
+        <button class="login-quick-btn" onclick="quickLogin('admin@selim.com','admin123')">
+          <div class="login-quick-avatar" style="background:#DBEAFE;color:#1D4ED8">AD</div>
+          <div class="login-quick-info">
+            <div class="login-quick-name">مدير النظام</div>
+            <div class="login-quick-role">صلاحيات كاملة</div>
+          </div>
+        </button>
+        <button class="login-quick-btn" onclick="quickLogin('doctor@selim.com','doctor123')">
+          <div class="login-quick-avatar" style="background:#D1FAE5;color:#065F46">DR</div>
+          <div class="login-quick-info">
+            <div class="login-quick-name">طبيب</div>
+            <div class="login-quick-role">لوحة الطبيب</div>
+          </div>
+        </button>
+        <button class="login-quick-btn" onclick="quickLogin('reception@selim.com','rec123')">
+          <div class="login-quick-avatar" style="background:#FEF3C7;color:#92400E">RC</div>
+          <div class="login-quick-info">
+            <div class="login-quick-name">استقبال</div>
+            <div class="login-quick-role">المواعيد والفواتير</div>
+          </div>
+        </button>
+        <button class="login-quick-btn" onclick="quickLogin('accountant@selim.com','acc123')">
+          <div class="login-quick-avatar" style="background:#EDE9FE;color:#5B21B6">AC</div>
+          <div class="login-quick-info">
+            <div class="login-quick-name">محاسب</div>
+            <div class="login-quick-role">التقارير المالية</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="login-footer">
+        بحاجة للمساعدة؟
+        <span style="color:var(--primary);cursor:pointer">تواصل مع الدعم الفني</span>
+      </div>
+    </div>
+
+    <!-- FORGOT PASSWORD -->
+    <div class="forgot-panel" id="forgot-panel">
+      <button onclick="showLogin()" style="background:none;border:none;color:var(--primary);font-size:13px;cursor:pointer;padding:0;display:flex;align-items:center;gap:5px;margin-bottom:16px">
+        <i class="fa-solid fa-arrow-right"></i> العودة لتسجيل الدخول
+      </button>
+      <div class="login-title" style="margin-top:8px">استعادة كلمة المرور</div>
+      <div class="login-subtitle">أدخل بريدك وسنرسل لك رابط الاستعادة</div>
+
+      <div id="forgot-step1">
+        <div class="login-input-group">
+          <i class="fa-regular fa-envelope login-input-icon"></i>
+          <input class="login-input" id="forgot-email" type="email" placeholder="البريد الإلكتروني"/>
+        </div>
+        <button class="login-btn" id="forgot-btn" onclick="sendReset()">
+          <div class="spinner"></div>
+          <span class="btn-text"><i class="fa-solid fa-paper-plane"></i> إرسال رابط الاستعادة</span>
+        </button>
+      </div>
+
+      <div id="forgot-step2" style="display:none;text-align:center;padding:24px 0">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--success-light);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;color:var(--success)">
+          <i class="fa-solid fa-envelope-open-text"></i>
+        </div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px">تم الإرسال!</div>
+        <div style="font-size:13px;color:var(--text-muted)">تحقق من بريدك الإلكتروني واتبع الرابط لإعادة تعيين كلمة المرور</div>
+        <button onclick="showLogin()" class="login-btn" style="margin-top:20px">
+          <span class="btn-text">العودة لتسجيل الدخول</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const supabase = createClient(
+  'https://kfbylfsqzbsqyqnjzjrw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYnlsZnNxemJzcXlxbmp6anJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjE3MDQsImV4cCI6MjA5NDM5NzcwNH0.x_Tv06wcQAFRTX_nutecP13FzPM9mN8js6ITeVl9d4k'
+)
+
+// ─── تحقق لو المستخدم مسجل دخوله بالفعل ───
+const { data: { session } } = await supabase.auth.getSession()
+if (session) {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single()
+
+  if (profile) redirectByRole(profile.role)
+}
+
+// ─── تسجيل الدخول ───
+window.doLogin = async function() {
+  const email = document.getElementById('login-email').value.trim()
+  const pass  = document.getElementById('login-pass').value
+
+  if (!email || !pass) {
+    showError('يرجى إدخال البريد الإلكتروني وكلمة المرور')
+    return
+  }
+
+  setLoading(true)
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass })
+
+  if (error) {
+    setLoading(false)
+    showError('البريد الإلكتروني أو كلمة المرور غير صحيحة')
+    document.getElementById('login-email').classList.add('error')
+    document.getElementById('login-pass').classList.add('error')
+    return
+  }
+
+  // جلب الدور
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, is_active, full_name, organizations(is_active)')
+    .eq('id', data.user.id)
+    .single()
+
+  if (!profile?.is_active) {
+    await supabase.auth.signOut()
+    setLoading(false)
+    showError('حسابك موقوف، تواصل مع مدير النظام')
+    return
+  }
+
+  if (!profile?.organizations?.is_active) {
+    await supabase.auth.signOut()
+    setLoading(false)
+    showError('حساب العيادة موقوف')
+    return
+  }
+
+  showToast('مرحباً، ' + profile.full_name, 'جاري تحميل لوحة التحكم...', 'success')
+  setTimeout(() => redirectByRole(profile.role), 800)
+}
+
+// ─── دخول سريع (تجريبي) ───
+window.quickLogin = async function(email, pass) {
+  document.getElementById('login-email').value = email
+  document.getElementById('login-pass').value = pass
+  await window.doLogin()
+}
+
+// ─── إرسال رابط استعادة كلمة المرور ───
+window.sendReset = async function() {
+  const email = document.getElementById('forgot-email').value.trim()
+  if (!email) { showToast('أدخل بريدك الإلكتروني', '', 'warning'); return }
+
+  const btn = document.getElementById('forgot-btn')
+  btn.classList.add('loading'); btn.disabled = true
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/login.html'
+  })
+
+  btn.classList.remove('loading'); btn.disabled = false
+
+  if (error) {
+    showToast('خطأ', 'تأكد من البريد الإلكتروني وحاول مرة أخرى', 'error')
+  } else {
+    document.getElementById('forgot-step1').style.display = 'none'
+    document.getElementById('forgot-step2').style.display = 'block'
+  }
+}
+
+// ─── Helpers ───
+function redirectByRole(role) {
+  const routes = { admin:'admin.html', doctor:'doctor.html', reception:'reception.html', accountant:'admin.html' }
+  window.location.href = routes[role] || 'login.html'
+}
+
+function setLoading(state) {
+  const btn = document.getElementById('login-btn')
+  btn.classList.toggle('loading', state)
+  btn.disabled = state
+}
+
+function showError(msg) {
+  const el = document.getElementById('login-error')
+  document.getElementById('login-error-text').textContent = msg
+  el.style.display = 'flex'
+}
+
+window.clearError = function() {
+  document.getElementById('login-error').style.display = 'none'
+  document.getElementById('login-email').classList.remove('error')
+  document.getElementById('login-pass').classList.remove('error')
+}
+
+window.togglePass = function() {
+  const input = document.getElementById('login-pass')
+  const icon  = document.getElementById('pass-eye')
+  input.type = input.type === 'password' ? 'text' : 'password'
+  icon.className = input.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash'
+}
+
+window.showForgot = function() {
+  document.getElementById('login-main').classList.add('hide')
+  document.getElementById('forgot-panel').classList.add('show')
+}
+
+window.showLogin = function() {
+  document.getElementById('login-main').classList.remove('hide')
+  document.getElementById('forgot-panel').classList.remove('show')
+  document.getElementById('forgot-step1').style.display = 'block'
+  document.getElementById('forgot-step2').style.display = 'none'
+}
+
+function showToast(title, msg = '', type = 'info') {
+  const configs = {
+    success: { icon:'fa-check-circle', bg:'#D1FAE5', color:'#10B981' },
+    error:   { icon:'fa-circle-xmark', bg:'#FEE2E2', color:'#EF4444' },
+    warning: { icon:'fa-triangle-exclamation', bg:'#FEF3C7', color:'#F59E0B' },
+    info:    { icon:'fa-circle-info',  bg:'#EEF2FF', color:'#6366F1' }
+  }
+  const c = configs[type] || configs.info
+  const wrap = document.getElementById('toast-wrap')
+  const toast = document.createElement('div')
+  toast.className = 'toast'
+  toast.innerHTML = `
+    <div class="toast-icon" style="background:${c.bg};color:${c.color}"><i class="fa-solid ${c.icon}"></i></div>
+    <div class="toast-body"><div class="toast-title">${title}</div>${msg?`<div class="toast-msg">${msg}</div>`:''}</div>
+  `
+  wrap.appendChild(toast)
+  setTimeout(() => toast.remove(), 4000)
+}
+
+// عرض رسالة الخطأ اللي مجاتش من صفحة تانية
+const storedError = sessionStorage.getItem('login_error')
+if (storedError) {
+  showError(storedError)
+  sessionStorage.removeItem('login_error')
+}
+</script>
+
+</body>
+</html>

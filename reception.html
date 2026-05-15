@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>سليم — الاستقبال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="shared/styles.css"/>
+</head>
+<body>
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">ZC</div>
+    <div><div class="sidebar-logo-text">سليم</div><div class="sidebar-logo-sub" data-org-name>نظام العيادة</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">الرئيسية</div>
+    <button class="nav-item active" onclick="nav('today')" id="nav-today"><i class="fa-solid fa-calendar-day"></i> مواعيد اليوم</button>
+    <div class="nav-section-title">الإدارة</div>
+    <button class="nav-item" onclick="nav('appointments')" id="nav-appointments"><i class="fa-solid fa-calendar-check"></i> كل المواعيد</button>
+    <button class="nav-item" onclick="nav('patients')" id="nav-patients"><i class="fa-solid fa-users"></i> المرضى</button>
+    <div class="nav-section-title">المالية</div>
+    <button class="nav-item" onclick="nav('pos')" id="nav-pos"><i class="fa-solid fa-cash-register"></i> فاتورة زيارة</button>
+    <button class="nav-item" onclick="nav('invoices')" id="nav-invoices"><i class="fa-solid fa-file-invoice-dollar"></i> الفواتير</button>
+  </nav>
+  <div class="sidebar-user">
+    <div class="sidebar-user-inner" onclick="doSignOut()">
+      <div class="sidebar-avatar" data-user-avatar>RC</div>
+      <div><div class="sidebar-user-name" data-user-name>جاري...</div><div class="sidebar-user-role" data-user-role></div></div>
+      <i class="fa-solid fa-arrow-right-from-bracket" style="color:rgba(255,255,255,.3);font-size:12px;margin-right:auto"></i>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <header class="topbar">
+    <div><div class="topbar-title" id="topbar-title">مواعيد اليوم</div><div class="topbar-subtitle" id="topbar-date"></div></div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- TODAY -->
+    <div class="page active" id="page-today">
+      <div class="page-header">
+        <div><div class="page-header-title">مواعيد اليوم</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي اليوم</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-day"></i></div></div><div class="stat-value" id="r-stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">في الانتظار</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-hourglass-half"></i></div></div><div class="stat-value" id="r-stat-wait">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مكتملة</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-check-circle"></i></div></div><div class="stat-value" id="r-stat-done">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">ملغية</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-times-circle"></i></div></div><div class="stat-value" id="r-stat-cancel">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">قائمة المواعيد</span><button class="btn btn-ghost btn-sm" onclick="loadToday()"><i class="fa-solid fa-refresh"></i> تحديث</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>المريض</th><th>الطبيب</th><th>الوقت</th><th>النوع</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+            <tbody id="today-table"><tr><td colspan="7" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL APPOINTMENTS -->
+    <div class="page" id="page-appointments">
+      <div class="page-header">
+        <div><div class="page-header-title">كل المواعيد</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="filters-row" style="margin:0;flex:1">
+            <div class="search-bar" style="flex:1;max-width:260px"><i class="fa-solid fa-search"></i><input class="form-control" id="all-appt-search" placeholder="بحث..." oninput="filterAllAppts()"/></div>
+            <select class="form-control" id="all-appt-status" onchange="filterAllAppts()" style="width:auto">
+              <option value="">كل الحالات</option>
+              <option value="pending">انتظار</option><option value="confirmed">مؤكد</option>
+              <option value="completed">مكتمل</option><option value="cancelled">ملغي</option>
+            </select>
+            <input type="date" class="form-control" id="all-appt-date" onchange="filterAllAppts()" style="width:auto"/>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>المريض</th><th>الطبيب</th><th>التاريخ</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+            <tbody id="all-appts-table"><tr><td colspan="5" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATIENTS -->
+    <div class="page" id="page-patients">
+      <div class="page-header">
+        <div><div class="page-header-title">المرضى</div><div class="page-header-sub" id="r-pts-count"></div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-patient')"><i class="fa-solid fa-plus"></i> مريض جديد</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="search-bar" style="max-width:280px"><i class="fa-solid fa-search"></i><input class="form-control" id="r-pts-search" placeholder="بحث بالاسم أو الرقم الطبي..." oninput="filterRPts()"/></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الرقم الطبي</th><th>المريض</th><th>الهاتف</th><th>الجنس</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+            <tbody id="r-pts-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- POS -->
+    <div class="page" id="page-pos">
+      <div class="page-header"><div class="page-header-title">فاتورة زيارة</div></div>
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:20px">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><span class="card-title">بيانات الفاتورة</span></div>
+            <div class="card-body">
+              <div class="form-grid form-grid-2">
+                <div class="form-group"><label class="form-label">المريض *</label><select class="form-control" id="pos-patient" onchange="posCalc()"></select></div>
+                <div class="form-group"><label class="form-label">الموعد</label><select class="form-control" id="pos-appt"></select></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">الخدمات</span><button class="btn btn-ghost btn-sm" onclick="addPosService()"><i class="fa-solid fa-plus"></i> إضافة خدمة</button></div>
+            <div class="card-body" id="pos-services-wrap">
+              <div id="pos-services"></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">ملخص الفاتورة</span></div>
+            <div class="card-body">
+              <div style="font-size:13px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:10px"><span>المجموع الفرعي</span><strong id="pos-subtotal">0 ج.م</strong></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                  <span>خصم</span>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <input type="number" class="form-control" id="pos-discount" value="0" style="width:80px" oninput="posCalc()"/>
+                    <select class="form-control" id="pos-disc-type" style="width:auto" onchange="posCalc()"><option value="fixed">ج.م</option><option value="percentage">%</option></select>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:16px;padding-top:10px;border-top:2px solid var(--border)"><span style="font-weight:700">الإجمالي</span><strong id="pos-total" style="font-size:18px;color:var(--primary)">0 ج.م</strong></div>
+                <div class="form-group"><label class="form-label">طريقة الدفع</label>
+                  <select class="form-control" id="pos-method"><option value="cash">نقدي</option><option value="card">كارت</option><option value="insurance">تأمين</option><option value="transfer">تحويل</option></select>
+                </div>
+                <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="pos-notes" rows="2"></textarea></div>
+                <button class="btn btn-success" style="width:100%" onclick="createInvoice()"><i class="fa-solid fa-file-invoice-dollar"></i> إنشاء الفاتورة</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVOICES -->
+    <div class="page" id="page-invoices">
+      <div class="page-header"><div class="page-header-title">الفواتير</div></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="filters-row" style="margin:0;flex:1">
+            <div class="search-bar" style="flex:1;max-width:260px"><i class="fa-solid fa-search"></i><input class="form-control" id="r-inv-search" placeholder="بحث برقم الفاتورة..." oninput="filterRInv()"/></div>
+            <select class="form-control" id="r-inv-status" onchange="filterRInv()" style="width:auto">
+              <option value="">كل الحالات</option>
+              <option value="paid">مدفوعة</option><option value="partial">جزئي</option>
+              <option value="draft">مسودة</option><option value="overdue">متأخرة</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>رقم الفاتورة</th><th>المريض</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>الحالة</th><th>إجراء</th></tr></thead>
+            <tbody id="r-inv-table"><tr><td colspan="7" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-appt">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">موعد جديد</span><button class="modal-close" onclick="closeModal('modal-appt')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">المريض *</label><select class="form-control" id="na-patient"></select></div>
+        <div class="form-group"><label class="form-label">الطبيب *</label><select class="form-control" id="na-doctor"></select></div>
+        <div class="form-group"><label class="form-label">التاريخ والوقت *</label><input type="datetime-local" class="form-control" id="na-datetime"/></div>
+        <div class="form-group"><label class="form-label">نوع الزيارة</label>
+          <select class="form-control" id="na-type"><option value="consultation">كشف</option><option value="follow_up">متابعة</option><option value="procedure">إجراء</option><option value="checkup">فحص دوري</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="na-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-appt')">إلغاء</button><button class="btn btn-primary" onclick="saveNewAppt()"><i class="fa-solid fa-check"></i> حفظ</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-patient">
+  <div class="modal modal-lg">
+    <div class="modal-header"><span class="modal-title">مريض جديد</span><button class="modal-close" onclick="closeModal('modal-patient')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">الاسم الكامل *</label><input type="text" class="form-control" id="np-name"/></div>
+        <div class="form-group"><label class="form-label">الجنس</label><select class="form-control" id="np-gender"><option value="male">ذكر</option><option value="female">أنثى</option></select></div>
+        <div class="form-group"><label class="form-label">الهاتف</label><input type="tel" class="form-control" id="np-phone"/></div>
+        <div class="form-group"><label class="form-label">تاريخ الميلاد</label><input type="date" class="form-control" id="np-dob"/></div>
+        <div class="form-group"><label class="form-label">الطبيب المعالج</label><select class="form-control" id="np-doctor"></select></div>
+        <div class="form-group"><label class="form-label">التأمين</label><input type="text" class="form-control" id="np-insurance"/></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-patient')">إلغاء</button><button class="btn btn-primary" onclick="saveNewPatient()"><i class="fa-solid fa-check"></i> حفظ</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-payment">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">تسجيل دفعة</span><button class="modal-close" onclick="closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pay-inv-id"/>
+      <div class="form-group"><label class="form-label">المبلغ *</label><input type="number" class="form-control" id="pay-amount"/></div>
+      <div class="form-group"><label class="form-label">طريقة الدفع</label><select class="form-control" id="pay-method"><option value="cash">نقدي</option><option value="card">كارت</option><option value="transfer">تحويل</option></select></div>
+      <div class="form-group"><label class="form-label">مرجع</label><input type="text" class="form-control" id="pay-ref"/></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-payment')">إلغاء</button><button class="btn btn-success" onclick="savePayment()"><i class="fa-solid fa-check"></i> تسجيل الدفع</button></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+<script type="module" src="reception.js"></script>
+</body>
+</html>
