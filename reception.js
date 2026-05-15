@@ -238,3 +238,24 @@ window.savePayment=async()=>{
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}))
 await loadApptSelects()
 await loadToday()
+
+// ── Print Invoice ──
+window.printInvoice=async(invId)=>{
+  const{data:inv}=await sb.from('invoices').select('*,patients(full_name,mrn,phone),invoice_items(*)').eq('id',invId).single()
+  if(!inv){toast('لم يتم العثور على الفاتورة','','error');return}
+  const orgName=p.organizations?.name||'سليم'
+  const win=window.open('','_blank','width=700,height=900')
+  const sAr={paid:'مدفوعة',partial:'جزئي',draft:'مسودة',overdue:'متأخرة'}
+  const mAr={cash:'نقداً',card:'بطاقة',insurance:'تأمين',bank_transfer:'تحويل'}
+  win.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>فاتورة ${inv.invoice_number}</title><style>body{font-family:Arial;padding:32px;direction:rtl}.cn{font-size:22px;font-weight:800;color:#1B6CA8}table{width:100%;border-collapse:collapse}th{background:#1B6CA8;color:#fff;padding:8px;text-align:right}td{padding:8px;border-bottom:1px solid #eee}.tot{font-weight:700;border-top:2px solid #1B6CA8}@media print{button{display:none}}</style></head><body><div style="text-align:center;border-bottom:3px solid #1B6CA8;padding-bottom:12px;margin-bottom:16px"><div class="cn">${orgName}</div></div><div style="display:flex;justify-content:space-between;margin-bottom:12px"><div><b>فاتورة: ${inv.invoice_number}</b><div style="font-size:12px">${new Date(inv.created_at).toLocaleDateString('ar-EG')}</div></div><span style="background:#D1FAE5;color:#065F46;padding:4px 12px;border-radius:20px;font-size:12px">${sAr[inv.status]||inv.status}</span></div><p><b>المريض:</b> ${inv.patients?.full_name} | <b>الرقم:</b> ${inv.patients?.mrn} | <b>الهاتف:</b> ${inv.patients?.phone||'—'} | <b>الدفع:</b> ${mAr[inv.payment_method]||inv.payment_method||'—'}</p><table><thead><tr><th>الخدمة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead><tbody>${(inv.invoice_items||[]).map(i=>`<tr><td>${i.description||'خدمة'}</td><td>${i.quantity}</td><td>${(i.unit_price||0).toLocaleString()}</td><td>${((i.quantity||1)*(i.unit_price||0)).toLocaleString()}</td></tr>`).join('')}</tbody><tfoot><tr class="tot"><td colspan="3">الإجمالي</td><td>${(inv.total||0).toLocaleString()} ج.م</td></tr><tr><td colspan="3">المدفوع</td><td style="color:#10B981">${(inv.paid_amount||0).toLocaleString()} ج.م</td></tr></tfoot></table>${inv.notes?`<p><b>ملاحظات:</b> ${inv.notes}</p>`:''}<div style="text-align:center;margin-top:20px"><button onclick="window.print()" style="background:#1B6CA8;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer">طباعة</button></div></body></html>`)
+  win.document.close()
+  setTimeout(()=>win.print(),400)
+}
+
+// ── WhatsApp Reminder ──
+window.sendWhatsApp=(phone,name,time)=>{
+  const msg=encodeURIComponent(`مرحباً ${name}،\nموعدكم: ${new Date(time).toLocaleString('ar-EG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}\nسليم لإدارة العيادات 🏥`)
+  const num=(phone||'').replace(/[^0-9]/g,'')
+  if(!num){toast('لا يوجد رقم هاتف','','warning');return}
+  window.open(`https://wa.me/2${num}?text=${msg}`,'_blank')
+}

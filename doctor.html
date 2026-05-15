@@ -4,10 +4,16 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>سليم — لوحة الطبيب</title>
+<meta name="theme-color" content="#1B6CA8"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="سليم"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="shared/styles.css"/>
+<style>@media print{.sidebar,.topbar,.modal-overlay,.toast-wrap{display:none!important}.main-wrap{margin:0!important}}</style>
 </head>
 <body>
 <div class="app-layout">
@@ -204,6 +210,7 @@
 </div>
 
 <div class="toast-wrap" id="toast-wrap"></div>
+<script src="pwa-register.js"></script>
 <script type="module" src="doctor.js"></script>
 </body>
 </html>

@@ -176,3 +176,37 @@ async function loadWeek(){
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}))
 await loadDrPatients()
 await loadSchedule()
+
+// ── Print Prescription ──
+window.printRx=async(rxId)=>{
+  const{data:rx}=await sb.from('prescriptions').select('*,patients(full_name,mrn,date_of_birth,phone),prescription_items(*)').eq('id',rxId).single()
+  if(!rx){toast('لم يتم العثور على الوصفة','','error');return}
+  const drName=profile.full_name
+  const orgName=p.organizations?.name||'سليم'
+  const win=window.open('','_blank','width=700,height=900')
+  win.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>وصفة طبية</title><style>body{font-family:Arial;padding:32px;direction:rtl}.cn{font-size:22px;font-weight:800;color:#1B6CA8}.rx-box{border:2px solid #1B6CA8;border-radius:8px;padding:16px;margin-bottom:16px}.drug{border-bottom:1px dashed #ddd;padding:10px 0;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px}.drug-label{font-size:11px;color:#888}@media print{button{display:none}}</style></head><body>
+  <div style="text-align:center;border-bottom:3px solid #1B6CA8;padding-bottom:12px;margin-bottom:16px">
+    <div class="cn">${orgName}</div>
+    <div style="font-size:13px;color:#555">وصفة طبية</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:13px">
+    <div><b>المريض:</b> ${rx.patients?.full_name}</div>
+    <div><b>الرقم الطبي:</b> ${rx.patients?.mrn}</div>
+    <div><b>الطبيب:</b> د. ${drName}</div>
+    <div><b>التاريخ:</b> ${new Date(rx.created_at).toLocaleDateString('ar-EG')}</div>
+    ${rx.valid_until?`<div><b>صالحة حتى:</b> ${new Date(rx.valid_until).toLocaleDateString('ar-EG')}</div>`:''}
+    ${rx.diagnosis?`<div><b>التشخيص:</b> ${rx.diagnosis}</div>`:''}
+  </div>
+  <div class="rx-box">
+    <div style="font-weight:700;margin-bottom:8px;color:#1B6CA8">☤ الأدوية الموصوفة</div>
+    ${(rx.prescription_items||[]).map((d,i)=>`<div class="drug"><div><div class="drug-label">الدواء</div><b>${i+1}. ${d.drug_name}</b></div><div><div class="drug-label">الجرعة</div>${d.dose||'—'}</div><div><div class="drug-label">التكرار</div>${d.frequency||'—'}</div><div><div class="drug-label">المدة</div>${d.duration||'—'}</div></div>`).join('')}
+  </div>
+  ${rx.notes?`<div style="margin-bottom:12px;font-size:13px"><b>تعليمات:</b> ${rx.notes}</div>`:''}
+  <div style="margin-top:40px;text-align:left;font-size:13px">
+    <div style="border-top:1px solid #222;width:200px;padding-top:4px">توقيع وختم الطبيب</div>
+  </div>
+  <div style="text-align:center;margin-top:20px"><button onclick="window.print()" style="background:#1B6CA8;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer">🖨️ طباعة</button></div>
+  </body></html>`)
+  win.document.close()
+  setTimeout(()=>win.print(),400)
+}
