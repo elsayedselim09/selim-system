@@ -4,6 +4,13 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>سليم — تسجيل الدخول</title>
+<meta name="description" content="نظام سليم لإدارة العيادات — تسجيل الدخول"/>
+<meta name="theme-color" content="#1B6CA8"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="سليم"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -529,5 +536,11 @@ if (storedError) {
 }
 </script>
 
+<!-- زر تثبيت التطبيق -->
+<div id="install-btn" style="display:none;position:fixed;bottom:20px;left:20px;z-index:999;background:#1B6CA8;color:#fff;border:none;border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;cursor:pointer;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(27,108,168,.4);font-family:'IBM Plex Sans Arabic',sans-serif">
+  📲 تثبيت التطبيق
+</div>
+
+<script src="pwa-register.js"></script>
 </body>
 </html>

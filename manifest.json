@@ -1,0 +1,49 @@
+{
+  "name": "سليم — نظام إدارة العيادات",
+  "short_name": "سليم",
+  "description": "نظام إدارة العيادات السحابي — مواعيد، مرضى، فواتير",
+  "start_url": "/selim-system/login.html",
+  "scope": "/selim-system/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0F2744",
+  "theme_color": "#1B6CA8",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/screenshot.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "لوحة التحكم"
+    }
+  ],
+  "categories": ["medical", "business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "مواعيد اليوم",
+      "url": "/selim-system/reception.html",
+      "description": "عرض مواعيد اليوم"
+    },
+    {
+      "name": "لوحة الإدارة",
+      "url": "/selim-system/admin.html",
+      "description": "لوحة تحكم المدير"
+    }
+  ]
+}
