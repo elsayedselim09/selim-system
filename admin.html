@@ -118,7 +118,7 @@
       <button class="topbar-btn" onclick="nav('appointments')" title="مواعيد اليوم">
         <i class="fa-regular fa-calendar"></i>
       </button>
-      <button class="topbar-btn" id="notif-btn" title="الإشعارات">
+      <button class="topbar-btn" id="notif-btn" title="الإشعارات" onclick="openModal('modal-notif')">
         <i class="fa-regular fa-bell"></i>
         <span class="notif-badge" id="notif-count" style="display:none">0</span>
       </button>
@@ -139,18 +139,6 @@
         </button>
       </div>
 
-
-      <!-- Stats -->
-      
-
-      <div class="quick-strip">
-        <div class="quick-chip" onclick="nav('appointments');openModal('modal-appt')"><i class="fa-solid fa-calendar-plus"></i> Ù…ÙˆØ¹Ø¯ Ø¬Ø¯ÙŠØ¯</div>
-        <div class="quick-chip" onclick="nav('patients');openModal('modal-patient')"><i class="fa-solid fa-user-plus"></i> Ù…Ø±ÙŠØ¶ Ø¬Ø¯ÙŠØ¯</div>
-        <div class="quick-chip" onclick="nav('invoices')"><i class="fa-solid fa-file-invoice"></i> Ø§Ù„ÙÙˆØ§ØªÙŠØ±</div>
-        <div class="quick-chip" onclick="nav('reports')"><i class="fa-solid fa-chart-bar"></i> Ø§Ù„ØªÙ‚Ø§Ø±ÙŠØ±</div>
-        <div class="quick-chip" onclick="nav('calendar')"><i class="fa-regular fa-calendar"></i> Ø§Ù„ØªÙ‚ÙˆÙŠÙ…</div>
-        <div class="quick-chip" onclick="nav('notifications')"><i class="fa-regular fa-bell"></i> Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª</div>
-      </div>
       <!-- Stats -->
       <div class="stats-grid" id="stats-grid">
         <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد اليوم</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-day"></i></div></div><div class="stat-value" id="stat-today">—</div></div>
