@@ -16,12 +16,95 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <style>
-@media print{.sidebar,.topbar,.modal-overlay,.toast-wrap,.btn:not(.print-show){display:none!important}.main-wrap{margin:0!important}.page{display:block!important}.print-header{display:block!important}}
-.print-header{display:none;text-align:center;margin-bottom:20px;border-bottom:2px solid #1B6CA8;padding-bottom:12px}
+/* ══ WEEK VIEW ══ */
+.week-grid-wrap{overflow-x:auto}
+.week-grid{
+  display:grid;
+  grid-template-columns:56px repeat(7,1fr);
+  gap:0;border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;
+  min-width:700px;
+}
+.week-header-cell{
+  background:var(--bg);padding:10px 6px;text-align:center;
+  border-bottom:1px solid var(--border);border-right:1px solid var(--border);
+  font-size:12px;font-weight:600;color:var(--text-muted);
+}
+.week-header-cell.today-col{background:var(--primary-light);color:var(--primary)}
+.week-header-cell:last-child{border-right:none}
+.week-time-col{background:var(--bg);border-right:1px solid var(--border)}
+.week-hour{
+  height:64px;display:flex;align-items:flex-start;justify-content:flex-end;
+  padding:4px 8px 0 0;font-size:10px;color:var(--text-light);
+  border-bottom:1px solid var(--border-light);
+}
+.week-day-col{border-right:1px solid var(--border);position:relative}
+.week-day-col:last-child{border-right:none}
+.week-slot{
+  height:64px;border-bottom:1px solid var(--border-light);
+  position:relative;cursor:pointer;transition:background .1s;
+}
+.week-slot:hover{background:rgba(27,108,168,.04)}
+.week-slot:last-child{border-bottom:none}
+.week-event{
+  position:absolute;right:2px;left:2px;border-radius:5px;
+  padding:3px 6px;font-size:11px;font-weight:500;cursor:pointer;
+  overflow:hidden;z-index:1;border-right:3px solid rgba(0,0,0,.15);
+  transition:transform .1s,box-shadow .1s;
+}
+.week-event:hover{transform:scale(1.01);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.week-now-line{
+  position:absolute;right:0;left:0;height:2px;
+  background:var(--danger);z-index:2;
+}
+.week-now-line::before{
+  content:'';position:absolute;right:-4px;top:-4px;
+  width:10px;height:10px;border-radius:50%;background:var(--danger);
+}
+.doc-filter-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);
+  font-size:12px;font-weight:500;cursor:pointer;
+  background:var(--card);color:var(--text-muted);
+  transition:all .15s;white-space:nowrap;
+}
+.doc-filter-chip:hover{border-color:var(--primary);color:var(--primary)}
+.doc-filter-chip.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+.week-loading{
+  display:flex;align-items:center;justify-content:center;
+  height:200px;color:var(--text-muted);font-size:13px;gap:10px;
+}
+.week-spinner{
+  width:20px;height:20px;border:2px solid var(--border);
+  border-top-color:var(--primary);border-radius:50%;
+  animation:weekSpin .7s linear infinite;
+}
+@keyframes weekSpin{to{transform:rotate(360deg)}}
+/* ══ FINANCIAL REPORT ══ */
+.fin-kpi-change{font-size:12px;margin-top:6px;display:flex;align-items:center;gap:4px}
+.fin-pay-segment{transition:width .5s;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff}
+.fin-expense-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-light)}
+.fin-expense-row:last-child{border-bottom:none}
+.fin-expense-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.fin-expense-bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.fin-expense-fill{height:100%;border-radius:4px;transition:width .5s}
+/* ══ EXPORT ══ */
+.export-opt{display:flex;align-items:center;gap:14px;padding:13px 14px;border:1px solid var(--border);border-radius:var(--radius-lg);cursor:pointer;transition:all .15s;margin-bottom:10px;background:var(--card)}
+.export-opt:hover{border-color:var(--primary);background:var(--primary-light)}
+.export-opt-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+/* ══ ROLES ══ */
+.role-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow);cursor:pointer;transition:all .15s}
+.role-card:hover,.role-card.selected{border-color:var(--primary);box-shadow:var(--shadow-md)}
+.role-card.selected{background:var(--primary-light)}
+.role-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:8px}
+.role-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.role-count{font-size:12px;color:var(--text-muted)}
+.perm-check{width:22px;height:22px;border-radius:5px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0;font-size:12px;background:transparent;user-select:none}
+.perm-check.on{background:var(--primary);border-color:var(--primary);color:#fff}
+@media print{.sidebar,.topbar,.modal-overlay,.toast-wrap{display:none!important}.main-wrap{margin:0!important}}
 </style>
 </head>
 <body>
-
 <div class="app-layout">
 
 <!-- ══ SIDEBAR ══ -->
@@ -40,10 +123,16 @@
       <i class="fa-solid fa-gauge-high"></i> لوحة التحكم
     </button>
 
-    <div class="nav-section-title">إدارة المرضى</div>
+    <div class="nav-section-title">إدارة المواعيد</div>
     <button class="nav-item" onclick="nav('appointments')" id="nav-appointments">
       <i class="fa-solid fa-calendar-check"></i> المواعيد
     </button>
+    <!-- ★ العرض الأسبوعي ★ -->
+    <button class="nav-item" onclick="nav('week-view')" id="nav-week-view">
+      <i class="fa-regular fa-calendar-week"></i> العرض الأسبوعي
+    </button>
+
+    <div class="nav-section-title">إدارة المرضى</div>
     <button class="nav-item" onclick="nav('patients')" id="nav-patients">
       <i class="fa-solid fa-users"></i> المرضى
     </button>
@@ -60,34 +149,37 @@
     <button class="nav-item" onclick="nav('invoices')" id="nav-invoices">
       <i class="fa-solid fa-file-invoice-dollar"></i> الفواتير
     </button>
+    <!-- ★ التقرير المالي ★ -->
+    <button class="nav-item" onclick="nav('financial')" id="nav-financial">
+      <i class="fa-solid fa-chart-pie"></i> التقرير المالي
+    </button>
     <button class="nav-item" onclick="nav('reports')" id="nav-reports">
       <i class="fa-solid fa-chart-bar"></i> التقارير
     </button>
 
-    <div class="nav-section-title">الإعدادات</div>
+    <div class="nav-section-title">الإدارة</div>
     <button class="nav-item" onclick="nav('inventory')" id="nav-inventory">
       <i class="fa-solid fa-boxes-stacked"></i> المخزون
     </button>
     <button class="nav-item" onclick="nav('branches')" id="nav-branches">
       <i class="fa-solid fa-code-branch"></i> الفروع
     </button>
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    <button class="nav-item"  id="nav-notifications"><i class="fa-regular fa-bell"></i> الإشعارات</button>
-    
-    
-
+    <!-- ★ إدارة الخدمات ★ -->
+    <button class="nav-item" onclick="nav('services')" id="nav-services">
+      <i class="fa-solid fa-briefcase-medical"></i> إدارة الخدمات
+    </button>
+    <!-- ★ التعاقدات ★ -->
+    <button class="nav-item" onclick="nav('contracts')" id="nav-contracts">
+      <i class="fa-solid fa-file-contract"></i> التعاقدات
+    </button>
+    <!-- ★ الأدوار والصلاحيات ★ -->
+    <button class="nav-item" onclick="nav('roles')" id="nav-roles">
+      <i class="fa-solid fa-shield-halved"></i> الصلاحيات
+    </button>
+    <!-- ★ مركز التصدير ★ -->
+    <button class="nav-item" onclick="nav('export')" id="nav-export">
+      <i class="fa-solid fa-file-export"></i> مركز التصدير
+    </button>
     <button class="nav-item" onclick="nav('settings')" id="nav-settings">
       <i class="fa-solid fa-gear"></i> الإعدادات
     </button>
@@ -138,38 +230,34 @@
           <i class="fa-solid fa-plus"></i> موعد جديد
         </button>
       </div>
-
-      <!-- Stats -->
       <div class="stats-grid" id="stats-grid">
         <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد اليوم</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-day"></i></div></div><div class="stat-value" id="stat-today">—</div></div>
         <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي المرضى</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-users"></i></div></div><div class="stat-value" id="stat-patients">—</div></div>
         <div class="stat-card"><div class="stat-header"><span class="stat-label">إيرادات الشهر</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-coins"></i></div></div><div class="stat-value" id="stat-revenue">—</div></div>
         <div class="stat-card"><div class="stat-header"><span class="stat-label">في الانتظار</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-clock"></i></div></div><div class="stat-value" id="stat-pending">—</div></div>
       </div>
-
-      <!-- Today Appointments -->
       <div class="card">
         <div class="card-header">
           <span class="card-title"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i> مواعيد اليوم</span>
-          <button class="btn btn-ghost btn-sm" onclick="nav('appointments')">عرض الكل</button>
+          <button class="btn btn-ghost btn-sm" onclick="nav('week-view')">عرض أسبوعي</button>
         </div>
-        <div class="card-body" style="padding:0">
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>المريض</th><th>الطبيب</th><th>الوقت</th><th>النوع</th><th>الحالة</th><th>إجراء</th></tr></thead>
-              <tbody id="today-appts"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
-            </table>
-          </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>المريض</th><th>الطبيب</th><th>الوقت</th><th>النوع</th><th>الحالة</th><th>إجراء</th></tr></thead>
+            <tbody id="today-appts"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
         </div>
       </div>
-
     </div>
 
     <!-- ══ APPOINTMENTS ══ -->
     <div class="page" id="page-appointments">
       <div class="page-header">
         <div><div class="page-header-title">المواعيد</div><div class="page-header-sub" id="appts-count"></div></div>
-        <button class="btn btn-primary" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="nav('week-view')"><i class="fa-regular fa-calendar-week"></i> عرض أسبوعي</button>
+          <button class="btn btn-primary" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-header">
@@ -194,6 +282,77 @@
       </div>
     </div>
 
+    <!-- ══ ★ العرض الأسبوعي ★ ══ -->
+    <div class="page" id="page-week-view">
+      <div class="page-header">
+        <div>
+          <div class="page-header-title">
+            <i class="fa-regular fa-calendar-week" style="color:var(--primary);margin-left:8px"></i>
+            العرض الأسبوعي
+          </div>
+          <div class="page-header-sub" id="week-range-label">جاري التحميل...</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="nav('appointments')">
+            <i class="fa-solid fa-list"></i> قائمة
+          </button>
+          <button class="btn btn-ghost btn-sm" id="week-prev" onclick="changeWeek(-1)">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="goToToday()">اليوم</button>
+          <button class="btn btn-ghost btn-sm" id="week-next" onclick="changeWeek(1)">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modal-appt')">
+            <i class="fa-solid fa-plus"></i> موعد جديد
+          </button>
+        </div>
+      </div>
+
+      <!-- إحصائيات سريعة للأسبوع -->
+      <div class="stats-grid" style="margin-bottom:16px" id="week-stats">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد الأسبوع</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-week"></i></div></div><div class="stat-value" id="week-stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مكتملة</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-check-circle"></i></div></div><div class="stat-value" id="week-stat-done">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">في الانتظار</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-hourglass-half"></i></div></div><div class="stat-value" id="week-stat-pending">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">ملغية</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-times-circle"></i></div></div><div class="stat-value" id="week-stat-cancelled">—</div></div>
+      </div>
+
+      <!-- فلتر الأطباء -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;flex-wrap:nowrap" id="week-doctor-filters">
+        <button class="doc-filter-chip active" data-doc-id="all" onclick="filterWeekByDoctor('all',this)">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block"></span>
+          الكل
+        </button>
+        <!-- يُملأ ديناميكياً من Supabase -->
+      </div>
+
+      <!-- شبكة الأسبوع -->
+      <div class="card">
+        <div class="week-grid-wrap">
+          <div class="week-grid" id="week-grid">
+            <div class="week-loading" style="grid-column:1/-1">
+              <div class="week-spinner"></div>
+              جاري تحميل المواعيد...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- قائمة مواعيد اليوم المحدد -->
+      <div class="card" style="margin-top:14px" id="week-day-detail" style="display:none">
+        <div class="card-header">
+          <span class="card-title" id="week-day-detail-title">مواعيد اليوم</span>
+          <span class="badge badge-blue" id="week-day-detail-count">0</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الوقت</th><th>المريض</th><th>الطبيب</th><th>النوع</th><th>الحالة</th><th>إجراء</th></tr></thead>
+            <tbody id="week-day-detail-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ PATIENTS ══ -->
     <div class="page" id="page-patients">
       <div class="page-header">
@@ -202,9 +361,7 @@
       </div>
       <div class="card">
         <div class="card-header">
-          <div class="filters-row" style="margin:0;flex:1">
-            <div class="search-bar" style="flex:1;max-width:280px"><i class="fa-solid fa-search"></i><input class="form-control" id="patient-search" placeholder="بحث بالاسم أو الرقم..." oninput="filterPatients()"/></div>
-          </div>
+          <div class="search-bar" style="max-width:280px"><i class="fa-solid fa-search"></i><input class="form-control" id="patient-search" placeholder="بحث بالاسم أو الرقم..." oninput="filterPatients()"/></div>
         </div>
         <div class="table-wrap">
           <table>
@@ -219,7 +376,7 @@
     <div class="page" id="page-doctors">
       <div class="page-header">
         <div><div class="page-header-title">الأطباء</div></div>
-        <button class="btn btn-primary" onclick="openModal('modal-doctor')"><i class="fa-solid fa-plus"></i> إضافة طبيب</button>
+        <button class="btn btn-primary" onclick="openModal('modal-employee')"><i class="fa-solid fa-plus"></i> إضافة طبيب</button>
       </div>
       <div id="doctors-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
         <div class="card" style="padding:24px;text-align:center"><div class="loading-spin"></div></div>
@@ -334,23 +491,309 @@
             <button class="btn btn-warning" onclick="changePassword()" style="color:#fff"><i class="fa-solid fa-shield-alt"></i> تغيير كلمة المرور</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ══ ★ التقرير المالي التفصيلي ★ ══ -->
+    <div class="page" id="page-financial">
+      <div class="page-header">
+        <div>
+          <div class="page-header-title"><i class="fa-solid fa-chart-pie" style="color:var(--primary);margin-left:8px"></i> التقرير المالي التفصيلي</div>
+          <div class="page-header-sub">تحليل الإيرادات والمصروفات والربحية</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="loadFinancial('month')" id="fin-btn-month" style="border-color:var(--primary);color:var(--primary)">هذا الشهر</button>
+          <button class="btn btn-outline btn-sm" onclick="loadFinancial('quarter')" id="fin-btn-quarter">هذا الربع</button>
+          <button class="btn btn-outline btn-sm" onclick="loadFinancial('year')" id="fin-btn-year">هذه السنة</button>
+          <button class="btn btn-primary btn-sm" onclick="nav('export')"><i class="fa-solid fa-download"></i> تصدير</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div id="fin-kpi-wrap" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+        <div class="stat-card" style="border-top:3px solid var(--primary)"><div class="stat-header"><span class="stat-label">إجمالي الإيرادات</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-coins"></i></div></div><div class="stat-value" id="fin-revenue">—</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="fin-revenue-change"></div></div>
+        <div class="stat-card" style="border-top:3px solid var(--success)"><div class="stat-header"><span class="stat-label">صافي الربح</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-hand-holding-dollar"></i></div></div><div class="stat-value" id="fin-profit">—</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="fin-profit-margin"></div></div>
+        <div class="stat-card" style="border-top:3px solid var(--danger)"><div class="stat-header"><span class="stat-label">المدفوع</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-receipt"></i></div></div><div class="stat-value" id="fin-paid">—</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="fin-paid-pct"></div></div>
+        <div class="stat-card" style="border-top:3px solid var(--warning)"><div class="stat-header"><span class="stat-label">المتبقي / الديون</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-clock"></i></div></div><div class="stat-value" id="fin-remaining">—</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="fin-invoices-count"></div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <!-- الإيرادات حسب طريقة الدفع -->
         <div class="card">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-bell" style="color:var(--success)"></i> الإشعارات الفورية</span></div>
-          <div class="card-body" id="notif-panel">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <span style="font-size:13px">تلقي إشعارات المواعيد الجديدة</span>
-              <label style="position:relative;display:inline-block;width:44px;height:24px"><input type="checkbox" id="notif-toggle" onchange="toggleNotif()" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;background:#ddd;border-radius:24px;cursor:pointer;transition:.3s" id="notif-slider"></span></label>
+          <div class="card-header"><span class="card-title">الإيرادات حسب طريقة الدفع</span></div>
+          <div class="card-body">
+            <div id="fin-pay-bar" style="display:flex;height:20px;border-radius:10px;overflow:hidden;margin-bottom:14px">
+              <div class="loading-spin" style="margin:auto"></div>
             </div>
-            <div id="notif-status" style="font-size:12px;color:var(--text-muted)">اضغط للتفعيل</div>
+            <div id="fin-pay-legend" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
         </div>
+
+        <!-- توزيع الفواتير حسب الحالة -->
         <div class="card">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-info-circle" style="color:var(--primary)"></i> معلومات النظام</span></div>
-          <div class="card-body" style="font-size:13px;line-height:2.5">
-            <div><b>إصدار النظام:</b> سليم v1.0</div>
-            <div><b>قاعدة البيانات:</b> Supabase PostgreSQL</div>
-            <div><b>الاستضافة:</b> GitHub Pages</div>
-            <div><b>تاريخ التطوير:</b> 2026</div>
+          <div class="card-header"><span class="card-title">توزيع الفواتير حسب الحالة</span></div>
+          <div class="card-body">
+            <canvas id="fin-status-chart" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- المقارنة الشهرية من Supabase -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">المقارنة الشهرية (آخر 6 أشهر)</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadFinancial(finPeriod)"><i class="fa-solid fa-refresh"></i></button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الشهر</th><th>الفواتير</th><th>الإجمالي</th><th>المحصّل</th><th>المتبقي</th><th>الحالة</th></tr></thead>
+            <tbody id="fin-monthly-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ★ مركز التصدير ★ ══ -->
+    <div class="page" id="page-export">
+      <div class="page-header">
+        <div>
+          <div class="page-header-title"><i class="fa-solid fa-file-export" style="color:var(--primary);margin-left:8px"></i> مركز التصدير</div>
+          <div class="page-header-sub">تصدير البيانات بصيغ مختلفة</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <!-- Excel -->
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-header"><span class="card-title"><i class="fa-solid fa-table" style="color:#217346;margin-left:6px"></i> تصدير Excel / CSV</span></div>
+            <div class="card-body">
+              <div class="export-opt" onclick="exportData('patients','xlsx')">
+                <div class="export-opt-icon" style="background:#E8F5E9;color:#217346"><i class="fa-solid fa-users"></i></div>
+                <div><div style="font-size:13px;font-weight:600">قائمة المرضى</div><div style="font-size:12px;color:var(--text-muted)">الاسم، رقم الملف، العمر، الطبيب</div></div>
+                <span class="badge badge-success" style="margin-right:auto">XLSX</span>
+              </div>
+              <div class="export-opt" onclick="exportData('invoices','xlsx')">
+                <div class="export-opt-icon" style="background:#E8F5E9;color:#217346"><i class="fa-solid fa-file-invoice"></i></div>
+                <div><div style="font-size:13px;font-weight:600">سجل الفواتير</div><div style="font-size:12px;color:var(--text-muted)">جميع الفواتير مع الحالة والمبالغ</div></div>
+                <span class="badge badge-success" style="margin-right:auto">XLSX</span>
+              </div>
+              <div class="export-opt" onclick="exportData('appointments','xlsx')">
+                <div class="export-opt-icon" style="background:#E8F5E9;color:#217346"><i class="fa-regular fa-calendar"></i></div>
+                <div><div style="font-size:13px;font-weight:600">سجل المواعيد</div><div style="font-size:12px;color:var(--text-muted)">جميع المواعيد بالتواريخ والأطباء</div></div>
+                <span class="badge badge-success" style="margin-right:auto">XLSX</span>
+              </div>
+              <div class="export-opt" onclick="exportData('employees','xlsx')">
+                <div class="export-opt-icon" style="background:#E8F5E9;color:#217346"><i class="fa-solid fa-users-gear"></i></div>
+                <div><div style="font-size:13px;font-weight:600">بيانات الموظفين</div><div style="font-size:12px;color:var(--text-muted)">بيانات الفريق والأدوار</div></div>
+                <span class="badge badge-success" style="margin-right:auto">XLSX</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- PDF + مجدول -->
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-header"><span class="card-title"><i class="fa-solid fa-file-pdf" style="color:#DC2626;margin-left:6px"></i> طباعة / PDF</span></div>
+            <div class="card-body">
+              <div class="export-opt" onclick="printReport('financial')">
+                <div class="export-opt-icon" style="background:#FEE2E2;color:#DC2626"><i class="fa-solid fa-chart-pie"></i></div>
+                <div><div style="font-size:13px;font-weight:600">التقرير المالي</div><div style="font-size:12px;color:var(--text-muted)">إيرادات، مصروفات، ربحية الشهر</div></div>
+                <span class="badge badge-danger" style="margin-right:auto">PDF</span>
+              </div>
+              <div class="export-opt" onclick="printReport('patients')">
+                <div class="export-opt-icon" style="background:#FEE2E2;color:#DC2626"><i class="fa-solid fa-users"></i></div>
+                <div><div style="font-size:13px;font-weight:600">تقرير المرضى</div><div style="font-size:12px;color:var(--text-muted)">إجمالي المرضى والإحصائيات</div></div>
+                <span class="badge badge-danger" style="margin-right:auto">PDF</span>
+              </div>
+              <div class="export-opt" onclick="printReport('appointments')">
+                <div class="export-opt-icon" style="background:#FEE2E2;color:#DC2626"><i class="fa-solid fa-calendar-check"></i></div>
+                <div><div style="font-size:13px;font-weight:600">تقرير المواعيد</div><div style="font-size:12px;color:var(--text-muted)">ملخص المواعيد والحالات</div></div>
+                <span class="badge badge-danger" style="margin-right:auto">PDF</span>
+              </div>
+            </div>
+          </div>
+          <!-- تصدير مجدول -->
+          <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fa-solid fa-clock" style="color:var(--warning);margin-left:6px"></i> تصدير مجدول</span></div>
+            <div class="card-body">
+              <div class="form-group"><label class="form-label">نوع التقرير</label>
+                <select class="form-control" id="sched-report-type">
+                  <option value="invoices">التقرير المالي الشهري</option>
+                  <option value="appointments">سجل المواعيد الأسبوعي</option>
+                  <option value="patients">تقرير المرضى</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label">التكرار</label>
+                <select class="form-control" id="sched-frequency">
+                  <option value="daily">يومي</option>
+                  <option value="weekly">أسبوعي</option>
+                  <option value="monthly" selected>شهري</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label">الإرسال إلى</label>
+                <input class="form-control" id="sched-email" placeholder="info@selim.com"/>
+              </div>
+              <button class="btn btn-primary" style="width:100%" onclick="scheduleExport()">
+                <i class="fa-solid fa-clock"></i> جدولة التصدير التلقائي
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ★ إدارة الخدمات ★ ══ -->
+    <div class="page" id="page-services">
+      <div class="page-header">
+        <div>
+          <div class="page-header-title"><i class="fa-solid fa-briefcase-medical" style="color:var(--primary);margin-left:8px"></i> إدارة الخدمات</div>
+          <div class="page-header-sub">تحديد الخدمات والأسعار المقدمة في العيادة</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-service')">
+          <i class="fa-solid fa-plus"></i> خدمة جديدة
+        </button>
+      </div>
+
+      <!-- إحصائيات -->
+      <div class="stats-grid" style="margin-bottom:16px">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي الخدمات</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-briefcase-medical"></i></div></div><div class="stat-value" id="svc-stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">نشطة</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-circle-check"></i></div></div><div class="stat-value" id="svc-stat-active">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">موقوفة</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-circle-xmark"></i></div></div><div class="stat-value" id="svc-stat-inactive">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">متوسط السعر</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-coins"></i></div></div><div class="stat-value" id="svc-stat-avg">—</div></div>
+      </div>
+
+      <!-- فلتر الفئات -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px" id="svc-cat-filters">
+        <button class="doc-filter-chip active" data-cat="all" onclick="filterServices('all',this)">الكل</button>
+        <button class="doc-filter-chip" data-cat="consultation" onclick="filterServices('consultation',this)">استشارة</button>
+        <button class="doc-filter-chip" data-cat="diagnosis" onclick="filterServices('diagnosis',this)">تشخيص</button>
+        <button class="doc-filter-chip" data-cat="lab" onclick="filterServices('lab',this)">مختبر</button>
+        <button class="doc-filter-chip" data-cat="radiology" onclick="filterServices('radiology',this)">أشعة</button>
+        <button class="doc-filter-chip" data-cat="procedure" onclick="filterServices('procedure',this)">إجراء</button>
+        <button class="doc-filter-chip" data-cat="therapy" onclick="filterServices('therapy',this)">علاج</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="search-bar" style="max-width:280px">
+            <i class="fa-solid fa-search"></i>
+            <input class="form-control" id="svc-search" placeholder="بحث بالاسم أو الفئة..." oninput="filterServicesSearch()"/>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadServices()"><i class="fa-solid fa-refresh"></i></button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>الخدمة</th><th>الفئة</th><th>السعر</th><th>المدة</th><th>الحالة</th><th>إجراءات</th></tr>
+            </thead>
+            <tbody id="svc-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ★ التعاقدات ★ ══ -->
+    <div class="page" id="page-contracts">
+      <div class="page-header">
+        <div>
+          <div class="page-header-title"><i class="fa-solid fa-file-contract" style="color:var(--primary);margin-left:8px"></i> التعاقدات</div>
+          <div class="page-header-sub">إدارة عقود الشركات والتأمينات</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-contract')">
+          <i class="fa-solid fa-plus"></i> تعاقد جديد
+        </button>
+      </div>
+
+      <!-- إحصائيات -->
+      <div class="stats-grid" style="margin-bottom:16px">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي التعاقدات</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-file-contract"></i></div></div><div class="stat-value" id="con-stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">نشطة</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-circle-check"></i></div></div><div class="stat-value" id="con-stat-active">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">قيد التجديد</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-clock-rotate-left"></i></div></div><div class="stat-value" id="con-stat-renew">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي قيمة العقود</span><div class="stat-icon" style="background:#DBEAFE;color:#1D4ED8"><i class="fa-solid fa-coins"></i></div></div><div class="stat-value" id="con-stat-value">—</div></div>
+      </div>
+
+      <!-- فلتر الحالة -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="doc-filter-chip active" data-status="all" onclick="filterContracts('all',this)">الكل</button>
+        <button class="doc-filter-chip" data-status="active" onclick="filterContracts('active',this)"><span class="badge-dot" style="width:6px;height:6px;border-radius:50%;background:var(--success);display:inline-block"></span> نشط</button>
+        <button class="doc-filter-chip" data-status="renewal" onclick="filterContracts('renewal',this)"><span class="badge-dot" style="width:6px;height:6px;border-radius:50%;background:var(--warning);display:inline-block"></span> قيد التجديد</button>
+        <button class="doc-filter-chip" data-status="expired" onclick="filterContracts('expired',this)"><span class="badge-dot" style="width:6px;height:6px;border-radius:50%;background:var(--danger);display:inline-block"></span> منتهي</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="search-bar" style="max-width:280px">
+            <i class="fa-solid fa-search"></i>
+            <input class="form-control" id="con-search" placeholder="بحث باسم الشركة..." oninput="filterContractsSearch()"/>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadContracts()"><i class="fa-solid fa-refresh"></i></button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>الشركة</th><th>نوع التعاقد</th><th>بداية</th><th>نهاية</th><th>قيمة العقد</th><th>المستفيدون</th><th>الحالة</th><th>إجراءات</th></tr>
+            </thead>
+            <tbody id="con-table"><tr><td colspan="8" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ★ الأدوار والصلاحيات ★ ══ -->
+    <div class="page" id="page-roles">
+      <div class="page-header">
+        <div>
+          <div class="page-header-title"><i class="fa-solid fa-shield-halved" style="color:var(--primary);margin-left:8px"></i> الأدوار والصلاحيات</div>
+          <div class="page-header-sub">تحكم في ما يراه كل دور في النظام</div>
+        </div>
+        <button class="btn btn-primary" onclick="toast('قريباً','ميزة إنشاء أدوار مخصصة قيد التطوير','info')">
+          <i class="fa-solid fa-plus"></i> دور جديد
+        </button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start">
+        <!-- قائمة الأدوار -->
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">الأدوار</div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="role-list">
+            <div class="role-card selected" onclick="selectRole('admin',this)">
+              <div class="role-icon" style="background:#DBEAFE;color:#1D4ED8"><i class="fa-solid fa-crown"></i></div>
+              <div class="role-name">مدير النظام</div>
+              <div class="role-count" id="role-count-admin">جاري التحميل...</div>
+            </div>
+            <div class="role-card" onclick="selectRole('doctor',this)">
+              <div class="role-icon" style="background:#D1FAE5;color:#065F46"><i class="fa-solid fa-user-doctor"></i></div>
+              <div class="role-name">طبيب</div>
+              <div class="role-count" id="role-count-doctor">جاري التحميل...</div>
+            </div>
+            <div class="role-card" onclick="selectRole('reception',this)">
+              <div class="role-icon" style="background:#FEF3C7;color:#92400E"><i class="fa-solid fa-headset"></i></div>
+              <div class="role-name">موظف استقبال</div>
+              <div class="role-count" id="role-count-reception">جاري التحميل...</div>
+            </div>
+            <div class="role-card" onclick="selectRole('accountant',this)">
+              <div class="role-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fa-solid fa-calculator"></i></div>
+              <div class="role-name">محاسب</div>
+              <div class="role-count" id="role-count-accountant">جاري التحميل...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- لوحة الصلاحيات -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <span class="card-title" id="role-perm-title">صلاحيات: مدير النظام</span>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">تحديد صلاحيات الوصول لكل وحدة</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="setAllPerms(false)">إلغاء الكل</button>
+              <button class="btn btn-outline btn-sm" onclick="setAllPerms(true)">تفعيل الكل</button>
+              <button class="btn btn-success btn-sm" onclick="savePerms()"><i class="fa-solid fa-check"></i> حفظ</button>
+            </div>
+          </div>
+          <div class="card-body" id="perms-body">
+            <div class="table-empty"><div class="loading-spin"></div></div>
           </div>
         </div>
       </div>
@@ -372,20 +815,10 @@
     <div class="modal-body">
       <input type="hidden" id="appt-id"/>
       <div class="form-grid form-grid-2">
-        <div class="form-group">
-          <label class="form-label">المريض *</label>
-          <select class="form-control" id="appt-patient" required></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">الطبيب *</label>
-          <select class="form-control" id="appt-doctor" required></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">التاريخ والوقت *</label>
-          <input type="datetime-local" class="form-control" id="appt-datetime" required/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">نوع الزيارة</label>
+        <div class="form-group"><label class="form-label">المريض *</label><select class="form-control" id="appt-patient" required></select></div>
+        <div class="form-group"><label class="form-label">الطبيب *</label><select class="form-control" id="appt-doctor" required></select></div>
+        <div class="form-group"><label class="form-label">التاريخ والوقت *</label><input type="datetime-local" class="form-control" id="appt-datetime" required/></div>
+        <div class="form-group"><label class="form-label">نوع الزيارة</label>
           <select class="form-control" id="appt-type">
             <option value="consultation">كشف</option>
             <option value="follow_up">متابعة</option>
@@ -393,8 +826,7 @@
             <option value="checkup">فحص دوري</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">الحالة</label>
+        <div class="form-group"><label class="form-label">الحالة</label>
           <select class="form-control" id="appt-status">
             <option value="pending">في الانتظار</option>
             <option value="confirmed">مؤكد</option>
@@ -402,15 +834,9 @@
             <option value="cancelled">ملغي</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">المدة (دقيقة)</label>
-          <input type="number" class="form-control" id="appt-duration" value="30"/>
-        </div>
+        <div class="form-group"><label class="form-label">المدة (دقيقة)</label><input type="number" class="form-control" id="appt-duration" value="30"/></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">ملاحظات</label>
-        <textarea class="form-control" id="appt-notes" rows="2"></textarea>
-      </div>
+      <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="appt-notes" rows="2"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-appt')">إلغاء</button>
@@ -429,56 +855,25 @@
     <div class="modal-body">
       <input type="hidden" id="patient-id"/>
       <div class="form-grid form-grid-2">
-        <div class="form-group">
-          <label class="form-label">الاسم الكامل *</label>
-          <input type="text" class="form-control" id="patient-name" required/>
+        <div class="form-group"><label class="form-label">الاسم الكامل *</label><input type="text" class="form-control" id="patient-name" required/></div>
+        <div class="form-group"><label class="form-label">الجنس</label>
+          <select class="form-control" id="patient-gender"><option value="male">ذكر</option><option value="female">أنثى</option></select>
         </div>
-        <div class="form-group">
-          <label class="form-label">الجنس</label>
-          <select class="form-control" id="patient-gender">
-            <option value="male">ذكر</option>
-            <option value="female">أنثى</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">تاريخ الميلاد</label>
-          <input type="date" class="form-control" id="patient-dob"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">الهاتف</label>
-          <input type="tel" class="form-control" id="patient-phone"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">البريد الإلكتروني</label>
-          <input type="email" class="form-control" id="patient-email"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">فصيلة الدم</label>
+        <div class="form-group"><label class="form-label">تاريخ الميلاد</label><input type="date" class="form-control" id="patient-dob"/></div>
+        <div class="form-group"><label class="form-label">الهاتف</label><input type="tel" class="form-control" id="patient-phone"/></div>
+        <div class="form-group"><label class="form-label">البريد الإلكتروني</label><input type="email" class="form-control" id="patient-email"/></div>
+        <div class="form-group"><label class="form-label">فصيلة الدم</label>
           <select class="form-control" id="patient-blood">
             <option value="">غير محدد</option>
-            <option>A+</option><option>A-</option>
-            <option>B+</option><option>B-</option>
-            <option>AB+</option><option>AB-</option>
-            <option>O+</option><option>O-</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">الطبيب المعالج</label>
-          <select class="form-control" id="patient-doctor"></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">شركة التأمين</label>
-          <input type="text" class="form-control" id="patient-insurance"/>
-        </div>
+        <div class="form-group"><label class="form-label">الطبيب المعالج</label><select class="form-control" id="patient-doctor"></select></div>
+        <div class="form-group"><label class="form-label">شركة التأمين</label><input type="text" class="form-control" id="patient-insurance"/></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">العنوان</label>
-        <input type="text" class="form-control" id="patient-address"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">ملاحظات</label>
-        <textarea class="form-control" id="patient-notes" rows="2"></textarea>
-      </div>
+      <div class="form-group"><label class="form-label">العنوان</label><input type="text" class="form-control" id="patient-address"/></div>
+      <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="patient-notes" rows="2"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-patient')">إلغاء</button>
@@ -515,8 +910,87 @@
   </div>
 </div>
 
+<!-- Service Modal -->
+<div class="modal-overlay" id="modal-service">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title" id="svc-modal-title">خدمة جديدة</span>
+      <button class="modal-close" onclick="closeModal('modal-service')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="svc-id"/>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">اسم الخدمة *</label><input type="text" class="form-control" id="svc-name"/></div>
+        <div class="form-group"><label class="form-label">الفئة</label>
+          <select class="form-control" id="svc-category">
+            <option value="consultation">استشارة</option>
+            <option value="diagnosis">تشخيص</option>
+            <option value="lab">مختبر</option>
+            <option value="radiology">أشعة</option>
+            <option value="procedure">إجراء</option>
+            <option value="therapy">علاج</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">السعر (ج.م) *</label><input type="number" class="form-control" id="svc-price" min="0"/></div>
+        <div class="form-group"><label class="form-label">المدة (دقيقة)</label><input type="number" class="form-control" id="svc-duration" value="30" min="5"/></div>
+        <div class="form-group"><label class="form-label">الحالة</label>
+          <select class="form-control" id="svc-active">
+            <option value="true">نشط</option>
+            <option value="false">موقوف</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">وصف الخدمة</label><textarea class="form-control" id="svc-desc" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-service')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveService()"><i class="fa-solid fa-check"></i> حفظ</button>
+    </div>
+  </div>
+</div>
 
-    <!-- Notification Panel -->
+<!-- Contract Modal -->
+<div class="modal-overlay" id="modal-contract">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title" id="con-modal-title">تعاقد جديد</span>
+      <button class="modal-close" onclick="closeModal('modal-contract')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="con-id"/>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">اسم الشركة *</label><input type="text" class="form-control" id="con-company"/></div>
+        <div class="form-group"><label class="form-label">نوع التعاقد</label>
+          <select class="form-control" id="con-type">
+            <option value="insurance">تأمين طبي شامل</option>
+            <option value="employees">رعاية الموظفين</option>
+            <option value="checkup">فحوصات دورية</option>
+            <option value="comprehensive">رعاية شاملة</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">تاريخ البداية *</label><input type="date" class="form-control" id="con-start"/></div>
+        <div class="form-group"><label class="form-label">تاريخ الانتهاء *</label><input type="date" class="form-control" id="con-end"/></div>
+        <div class="form-group"><label class="form-label">قيمة العقد (ج.م)</label><input type="number" class="form-control" id="con-value" min="0"/></div>
+        <div class="form-group"><label class="form-label">عدد المستفيدين</label><input type="number" class="form-control" id="con-beneficiaries" min="0"/></div>
+        <div class="form-group"><label class="form-label">نسبة التغطية %</label><input type="number" class="form-control" id="con-coverage" value="80" min="0" max="100"/></div>
+        <div class="form-group"><label class="form-label">الحالة</label>
+          <select class="form-control" id="con-status">
+            <option value="active">نشط</option>
+            <option value="renewal">قيد التجديد</option>
+            <option value="expired">منتهي</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="con-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-contract')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveContract()"><i class="fa-solid fa-check"></i> حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Panel -->
 <div class="modal-overlay" id="modal-notif">
   <div class="modal" style="max-width:360px">
     <div class="modal-header"><span class="modal-title"><i class="fa-solid fa-bell" style="color:var(--warning)"></i> الإشعارات</span><button class="modal-close" onclick="closeModal('modal-notif')"><i class="fa-solid fa-xmark"></i></button></div>
@@ -526,10 +1000,1137 @@
   </div>
 </div>
 
+<!-- Invoice Modal placeholder -->
+<div class="modal-overlay" id="modal-invoice">
+  <div class="modal"><div class="modal-header"><span class="modal-title">فاتورة جديدة</span><button class="modal-close" onclick="closeModal('modal-invoice')"><i class="fa-solid fa-xmark"></i></button></div>
+  <div class="modal-body"><p style="color:var(--text-muted);text-align:center;padding:24px">قيد التطوير</p></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-invoice')">إغلاق</button></div></div>
+</div>
 
+<!-- Item Modal placeholder -->
+<div class="modal-overlay" id="modal-item">
+  <div class="modal"><div class="modal-header"><span class="modal-title">إضافة صنف</span><button class="modal-close" onclick="closeModal('modal-item')"><i class="fa-solid fa-xmark"></i></button></div>
+  <div class="modal-body"><p style="color:var(--text-muted);text-align:center;padding:24px">قيد التطوير</p></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-item')">إغلاق</button></div></div>
+</div>
 
 <div class="toast-wrap" id="toast-wrap"></div>
 <script src="pwa-register.js"></script>
-<script type="module" src="admin.js"></script>
+<script type="module">
+import{createClient}from'https://esm.sh/@supabase/supabase-js@2'
+const sb=createClient(
+  'https://kfbylfsqzbsqyqnjzjrw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYnlsZnNxemJzcXlxbmp6anJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjE3MDQsImV4cCI6MjA5NDM5NzcwNH0.x_Tv06wcQAFRTX_nutecP13FzPM9mN8js6ITeVl9d4k'
+)
+let profile,orgId,allAppts=[],allPatients=[]
+
+// ── Auth ──
+const{data:{user}}=await sb.auth.getUser()
+if(!user){location.href='login.html'}
+const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).single()
+if(!p||!p.is_active){await sb.auth.signOut();location.href='login.html'}
+if(!['admin','accountant'].includes(p.role)){location.href=p.role==='doctor'?'doctor.html':'reception.html'}
+profile=p;orgId=p.organization_id
+const{data:org}=await sb.from('organizations').select('*').eq('id',orgId).single()
+p.organizations=org||{}
+document.querySelectorAll('[data-user-name]').forEach(e=>e.textContent=p.full_name)
+document.querySelectorAll('[data-user-role]').forEach(e=>e.textContent=({admin:'مدير النظام',doctor:'طبيب',reception:'استقبال',accountant:'محاسب'})[p.role]||p.role)
+document.querySelectorAll('[data-user-avatar]').forEach(e=>e.textContent=p.full_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase())
+document.querySelectorAll('[data-org-name]').forEach(e=>e.textContent=p.organizations?.name||'')
+const now=new Date()
+document.getElementById('topbar-date').textContent=now.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+document.getElementById('dash-date').textContent=now.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+
+// ── Helpers ──
+window.openModal=id=>{document.getElementById(id)?.classList.add('open')}
+window.closeModal=id=>{document.getElementById(id)?.classList.remove('open')}
+window.doSignOut=async()=>{await sb.auth.signOut();location.href='login.html'}
+function toast(title,msg='',type='info'){
+  const c={success:{i:'fa-check-circle',bg:'#D1FAE5',cl:'#10B981'},error:{i:'fa-circle-xmark',bg:'#FEE2E2',cl:'#EF4444'},warning:{i:'fa-triangle-exclamation',bg:'#FEF3C7',cl:'#F59E0B'},info:{i:'fa-circle-info',bg:'#EEF2FF',cl:'#6366F1'}}[type]
+  const w=document.getElementById('toast-wrap'),t=document.createElement('div')
+  t.className='toast'
+  t.innerHTML=`<div class="toast-icon" style="background:${c.bg};color:${c.cl}"><i class="fa-solid ${c.i}"></i></div><div class="toast-body"><div class="toast-title">${title}</div>${msg?`<div class="toast-msg">${msg}</div>`:''}</div>`
+  w.appendChild(t);setTimeout(()=>t.remove(),4000)
+}
+function fmoney(n){return new Intl.NumberFormat('ar-EG',{style:'currency',currency:'EGP',minimumFractionDigits:0}).format(n||0)}
+function fdt(d){return d?new Date(d).toLocaleString('ar-EG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—'}
+function ft(d){return d?new Date(d).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}):'—'}
+function badge(s){
+  const m={pending:'badge-warning',confirmed:'badge-info',completed:'badge-success',cancelled:'badge-danger',no_show:'badge-danger',paid:'badge-success',partial:'badge-warning',draft:'badge-gray',overdue:'badge-danger',active:'badge-success',inactive:'badge-gray',new:'badge-blue'}
+  const l={pending:'انتظار',confirmed:'مؤكد',completed:'مكتمل',cancelled:'ملغي',no_show:'لم يحضر',paid:'مدفوع',partial:'جزئي',draft:'مسودة',overdue:'متأخر',active:'نشط',inactive:'غير نشط',new:'جديد'}
+  return`<span class="badge ${m[s]||'badge-gray'}">${l[s]||s}</span>`
+}
+const typeLabel={consultation:'كشف',follow_up:'متابعة',procedure:'إجراء',checkup:'فحص'}
+
+// ── Navigation ──
+const titles={dashboard:'لوحة التحكم','week-view':'العرض الأسبوعي',appointments:'المواعيد',patients:'المرضى',doctors:'الأطباء',employees:'الموظفون',invoices:'الفواتير',inventory:'المخزون',branches:'الفروع',reports:'التقارير',settings:'الإعدادات'}
+window.nav=function(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'))
+  document.getElementById('page-'+id)?.classList.add('active')
+  document.getElementById('nav-'+id)?.classList.add('active')
+  document.getElementById('topbar-title').textContent=titles[id]||''
+  const loaders={appointments:loadAppts,patients:loadPatients,doctors:loadDoctors,employees:loadEmployeesWithEdit,invoices:loadInvoices,inventory:loadInventory,branches:loadBranches,reports:loadReports,settings:loadSettings,'week-view':loadWeekView}
+  loaders[id]?.()
+}
+
+// ── Dashboard ──
+async function loadDashboard(){
+  const today=new Date().toISOString().slice(0,10)
+  const[{count:tc},{count:pc},{data:rev},{count:wc}]=await Promise.all([
+    sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).gte('scheduled_at',today+'T00:00:00').lte('scheduled_at',today+'T23:59:59'),
+    sb.from('patients').select('*',{count:'exact',head:true}).eq('organization_id',orgId),
+    sb.from('invoices').select('total').eq('organization_id',orgId).eq('status','paid').gte('created_at',new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString()),
+    sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).eq('status','pending')
+  ])
+  document.getElementById('stat-today').textContent=tc||0
+  document.getElementById('stat-patients').textContent=pc||0
+  document.getElementById('stat-revenue').textContent=fmoney((rev||[]).reduce((s,r)=>s+(r.total||0),0))
+  document.getElementById('stat-pending').textContent=wc||0
+  const{data:appts}=await sb.from('appointments').select('*,patients(full_name),profiles!appointments_doctor_id_fkey(full_name)').eq('organization_id',orgId).gte('scheduled_at',today+'T00:00:00').lte('scheduled_at',today+'T23:59:59').order('scheduled_at')
+  const tb=document.getElementById('today-appts')
+  if(!appts?.length){tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد مواعيد اليوم</td></tr>';return}
+  tb.innerHTML=appts.map(a=>`<tr><td>${a.patients?.full_name||'—'}</td><td>${a.profiles?.full_name||'—'}</td><td>${ft(a.scheduled_at)}</td><td>${typeLabel[a.type]||a.type}</td><td>${badge(a.status)}</td><td><button class="btn btn-ghost btn-sm btn-icon" onclick="editAppt('${a.id}')"><i class="fa-solid fa-pen"></i></button></td></tr>`).join('')
+}
+
+// ══════════════════════════════════════════════════════
+// ★ العرض الأسبوعي — متصل بـ Supabase بالكامل ★
+// ══════════════════════════════════════════════════════
+
+const WEEK_DAYS=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت']
+const HOURS_LABELS=['08:00','09:00','10:00','11:00','12:00','01:00م','02:00م','03:00م','04:00م','05:00م','06:00م']
+const HOUR_START=8 // 8am
+const DOC_COLORS=[
+  {color:'#3B82F6',bg:'#DBEAFE'},{color:'#10B981',bg:'#D1FAE5'},
+  {color:'#8B5CF6',bg:'#EDE9FE'},{color:'#F59E0B',bg:'#FEF3C7'},
+  {color:'#EF4444',bg:'#FEE2E2'},{color:'#06B6D4',bg:'#CFFAFE'},
+  {color:'#EC4899',bg:'#FCE7F3'},{color:'#64748B',bg:'#F1F5F9'},
+]
+
+let weekCurrent=new Date()     // أي يوم في الأسبوع الحالي
+let weekAppts=[]               // كل مواعيد الأسبوع من Supabase
+let weekDoctors=[]             // الأطباء المتاحون
+let weekActiveDoctor='all'     // فلتر الطبيب المحدد
+let weekSelectedDay=null       // اليوم المحدد لعرض تفاصيله
+
+// احسب بداية الأسبوع (الأحد)
+function getWeekStart(d){
+  const date=new Date(d)
+  const day=date.getDay() // 0=Sun
+  date.setDate(date.getDate()-day)
+  date.setHours(0,0,0,0)
+  return date
+}
+function getWeekEnd(d){
+  const start=getWeekStart(d)
+  const end=new Date(start)
+  end.setDate(end.getDate()+6)
+  end.setHours(23,59,59,999)
+  return end
+}
+
+// تحميل مواعيد الأسبوع من Supabase
+async function loadWeekView(){
+  // عرض loading
+  document.getElementById('week-grid').innerHTML=`
+    <div class="week-loading" style="grid-column:1/-1">
+      <div class="week-spinner"></div> جاري تحميل المواعيد...
+    </div>`
+
+  const start=getWeekStart(weekCurrent).toISOString()
+  const end=getWeekEnd(weekCurrent).toISOString()
+
+  // جلب المواعيد مع بيانات المريض والطبيب
+  const{data,error}=await sb.from('appointments')
+    .select('*,patients(full_name,phone),profiles!appointments_doctor_id_fkey(id,full_name,specialty)')
+    .eq('organization_id',orgId)
+    .gte('scheduled_at',start)
+    .lte('scheduled_at',end)
+    .order('scheduled_at')
+
+  if(error){
+    document.getElementById('week-grid').innerHTML=`<div class="week-loading" style="grid-column:1/-1;color:var(--danger)"><i class="fa-solid fa-circle-xmark"></i> فشل تحميل المواعيد</div>`
+    toast('خطأ',error.message,'error')
+    return
+  }
+
+  weekAppts=data||[]
+
+  // استخراج الأطباء من المواعيد لبناء الفلتر
+  const docMap={}
+  weekAppts.forEach(a=>{
+    if(a.profiles?.id&&!docMap[a.profiles.id])
+      docMap[a.profiles.id]={id:a.profiles.id,name:a.profiles.full_name}
+  })
+  weekDoctors=Object.values(docMap)
+
+  // بناء فلتر الأطباء
+  renderDoctorFilters()
+
+  // تحديث الإحصائيات
+  updateWeekStats()
+
+  // رسم الشبكة
+  renderWeekGrid()
+
+  // تحديث التسمية
+  updateWeekLabel()
+}
+
+function updateWeekLabel(){
+  const start=getWeekStart(weekCurrent)
+  const end=getWeekEnd(weekCurrent)
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+  const el=document.getElementById('week-range-label')
+  if(el) el.textContent=`${start.getDate()} — ${end.getDate()} ${months[end.getMonth()]} ${end.getFullYear()}`
+}
+
+function updateWeekStats(){
+  const filtered=getFilteredAppts()
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  set('week-stat-total',filtered.length)
+  set('week-stat-done',filtered.filter(a=>a.status==='completed').length)
+  set('week-stat-pending',filtered.filter(a=>a.status==='pending'||a.status==='confirmed').length)
+  set('week-stat-cancelled',filtered.filter(a=>a.status==='cancelled'||a.status==='no_show').length)
+}
+
+function getFilteredAppts(){
+  if(weekActiveDoctor==='all') return weekAppts
+  return weekAppts.filter(a=>a.profiles?.id===weekActiveDoctor)
+}
+
+function renderDoctorFilters(){
+  const wrap=document.getElementById('week-doctor-filters')
+  if(!wrap)return
+  // نظّف ما عدا زر "الكل"
+  const allBtn=wrap.querySelector('[data-doc-id="all"]')
+  wrap.innerHTML=''
+  if(allBtn) wrap.appendChild(allBtn)
+  else{
+    const b=document.createElement('button')
+    b.className='doc-filter-chip active'
+    b.dataset.docId='all'
+    b.onclick=function(){filterWeekByDoctor('all',this)}
+    b.innerHTML=`<span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block"></span> الكل`
+    wrap.appendChild(b)
+  }
+  weekDoctors.forEach((doc,i)=>{
+    const col=DOC_COLORS[i%DOC_COLORS.length]
+    const b=document.createElement('button')
+    b.className='doc-filter-chip'
+    b.dataset.docId=doc.id
+    b.onclick=function(){filterWeekByDoctor(doc.id,this)}
+    b.innerHTML=`<span style="width:8px;height:8px;border-radius:50%;background:${col.color};display:inline-block"></span> ${doc.name}`
+    wrap.appendChild(b)
+  })
+}
+
+window.filterWeekByDoctor=function(docId,el){
+  weekActiveDoctor=docId
+  document.querySelectorAll('.doc-filter-chip').forEach(b=>b.classList.remove('active'))
+  el.classList.add('active')
+  updateWeekStats()
+  renderWeekGrid()
+  if(weekSelectedDay!==null) renderDayDetail(weekSelectedDay)
+}
+
+function getDocColor(docId){
+  const idx=weekDoctors.findIndex(d=>d.id===docId)
+  return DOC_COLORS[idx>=0?idx%DOC_COLORS.length:0]
+}
+
+function renderWeekGrid(){
+  const grid=document.getElementById('week-grid')
+  if(!grid)return
+  const today=new Date()
+  const weekStart=getWeekStart(weekCurrent)
+  const filtered=getFilteredAppts()
+
+  let html=''
+
+  // ── رأس الجدول ──
+  html+=`<div class="week-header-cell" style="background:var(--bg)"></div>`
+  for(let d=0;d<7;d++){
+    const date=new Date(weekStart)
+    date.setDate(weekStart.getDate()+d)
+    const isToday=date.toDateString()===today.toDateString()
+    const dayApptCount=filtered.filter(a=>{
+      const ad=new Date(a.scheduled_at)
+      return ad.toDateString()===date.toDateString()
+    }).length
+    html+=`
+      <div class="week-header-cell${isToday?' today-col':''}" style="cursor:pointer" onclick="selectWeekDay(${d})">
+        ${WEEK_DAYS[d]}<br/>
+        <span style="font-size:18px;font-weight:700;color:${isToday?'var(--primary)':'var(--text)'};">${date.getDate()}</span>
+        ${dayApptCount>0?`<br/><span style="font-size:10px;color:${isToday?'var(--primary)':'var(--text-muted)'};">${dayApptCount} موعد</span>`:''}
+      </div>`
+  }
+
+  // ── صفوف الساعات ──
+  for(let h=0;h<HOURS_LABELS.length;h++){
+    // عمود الوقت
+    html+=`<div class="week-time-col"><div class="week-hour">${HOURS_LABELS[h]}</div></div>`
+
+    for(let d=0;d<7;d++){
+      const date=new Date(weekStart)
+      date.setDate(weekStart.getDate()+d)
+      const isToday=date.toDateString()===today.toDateString()
+      const slotHour=HOUR_START+h
+
+      // المواعيد في هذه الخلية (نفس اليوم، نفس الساعة)
+      const slotAppts=filtered.filter(a=>{
+        const ad=new Date(a.scheduled_at)
+        return ad.toDateString()===date.toDateString() && ad.getHours()===slotHour
+      })
+
+      html+=`<div class="week-day-col">
+        <div class="week-slot" style="${isToday?'background:rgba(27,108,168,.03)':''}" onclick="selectWeekDay(${d})">`
+
+      slotAppts.forEach(a=>{
+        const docId=a.profiles?.id||''
+        const col=getDocColor(docId)
+        const patName=a.patients?.full_name||'—'
+        const docName=a.profiles?.full_name||'—'
+        const dur=Math.max(1,Math.round((a.duration_minutes||30)/60*64))
+        html+=`
+          <div class="week-event"
+            style="background:${col.bg};color:${col.color};height:${dur-4}px;top:2px"
+            onclick="event.stopPropagation();showApptDetail('${a.id}')"
+            title="${patName} — ${docName} — ${ft(a.scheduled_at)}">
+            <div style="font-weight:600;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${patName}</div>
+            <div style="font-size:10px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${docName}</div>
+          </div>`
+      })
+
+      // خط الوقت الحالي
+      if(isToday&&slotHour===today.getHours()){
+        html+=`<div class="week-now-line" style="top:${Math.round(today.getMinutes()/60*64)}px"></div>`
+      }
+
+      html+=`</div></div>`
+    }
+  }
+
+  grid.innerHTML=html
+}
+
+// تحديد يوم لعرض تفاصيله
+window.selectWeekDay=function(dayIndex){
+  weekSelectedDay=dayIndex
+  renderDayDetail(dayIndex)
+}
+
+function renderDayDetail(dayIndex){
+  const weekStart=getWeekStart(weekCurrent)
+  const date=new Date(weekStart)
+  date.setDate(weekStart.getDate()+dayIndex)
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+  const label=`${WEEK_DAYS[dayIndex]} ${date.getDate()} ${months[date.getMonth()]}`
+
+  const dayAppts=getFilteredAppts().filter(a=>
+    new Date(a.scheduled_at).toDateString()===date.toDateString()
+  ).sort((a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at))
+
+  const detail=document.getElementById('week-day-detail')
+  const titleEl=document.getElementById('week-day-detail-title')
+  const countEl=document.getElementById('week-day-detail-count')
+  const tbody=document.getElementById('week-day-detail-body')
+
+  detail.style.display='block'
+  titleEl.textContent=`مواعيد ${label}`
+  countEl.textContent=dayAppts.length
+
+  if(!dayAppts.length){
+    tbody.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد مواعيد هذا اليوم</td></tr>'
+    return
+  }
+
+  tbody.innerHTML=dayAppts.map(a=>`
+    <tr>
+      <td><strong>${ft(a.scheduled_at)}</strong></td>
+      <td>${a.patients?.full_name||'—'}</td>
+      <td>${a.profiles?.full_name||'—'}</td>
+      <td>${typeLabel[a.type]||a.type}</td>
+      <td>${badge(a.status)}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="editAppt('${a.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-${a.status==='completed'?'ghost':'success'} btn-sm" onclick="quickComplete('${a.id}','${a.status}')">
+          ${a.status==='completed'?'<i class="fa-solid fa-check"></i>':'<i class="fa-solid fa-check"></i> إتمام'}
+        </button>
+      </td>
+    </tr>`).join('')
+}
+
+// إتمام موعد سريع
+window.quickComplete=async function(id,currentStatus){
+  if(currentStatus==='completed') return
+  const{error}=await sb.from('appointments').update({status:'completed'}).eq('id',id)
+  if(error){toast('خطأ',error.message,'error');return}
+  toast('تم','تم تحديث حالة الموعد','success')
+  await loadWeekView()
+  if(weekSelectedDay!==null) renderDayDetail(weekSelectedDay)
+}
+
+// عرض تفاصيل موعد في toast
+window.showApptDetail=function(id){
+  const a=weekAppts.find(x=>x.id===id)
+  if(!a)return
+  toast(
+    a.patients?.full_name||'موعد',
+    `${a.profiles?.full_name||'—'} · ${ft(a.scheduled_at)} · ${typeLabel[a.type]||a.type}`,
+    'info'
+  )
+}
+
+// التنقل بين الأسابيع
+window.changeWeek=function(dir){
+  weekCurrent.setDate(weekCurrent.getDate()+dir*7)
+  weekSelectedDay=null
+  document.getElementById('week-day-detail').style.display='none'
+  loadWeekView()
+}
+
+// الذهاب لأسبوع اليوم
+window.goToToday=function(){
+  weekCurrent=new Date()
+  weekSelectedDay=null
+  document.getElementById('week-day-detail').style.display='none'
+  loadWeekView()
+}
+
+// Realtime: تحديث تلقائي عند تغيير المواعيد
+function setupWeekRealtime(){
+  sb.channel('week_appts')
+    .on('postgres_changes',{event:'*',schema:'public',table:'appointments',filter:`organization_id=eq.${orgId}`},()=>{
+      const activeEl=document.getElementById('page-week-view')
+      if(activeEl?.classList.contains('active')){
+        loadWeekView()
+      }
+    })
+    .subscribe()
+}
+
+// ══════════════════════════════════════════════════════
+
+// ── Appointments ──
+async function loadAppts(){
+  const{data}=await sb.from('appointments').select('*,patients(full_name),profiles!appointments_doctor_id_fkey(full_name)').eq('organization_id',orgId).order('scheduled_at',{ascending:false})
+  allAppts=data||[]
+  document.getElementById('appts-count').textContent=`${allAppts.length} موعد`
+  renderAppts(allAppts)
+}
+function renderAppts(data){
+  const tb=document.getElementById('appts-table')
+  if(!data.length){tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد مواعيد</td></tr>';return}
+  tb.innerHTML=data.map(a=>`<tr><td>${a.patients?.full_name||'—'}</td><td>${a.profiles?.full_name||'—'}</td><td>${fdt(a.scheduled_at)}</td><td>${typeLabel[a.type]||a.type}</td><td>${badge(a.status)}</td><td><button class="btn btn-ghost btn-sm btn-icon" onclick="editAppt('${a.id}')"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-danger btn-sm btn-icon" onclick="deleteAppt('${a.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')
+}
+window.filterAppts=()=>{
+  const s=document.getElementById('appt-search').value.toLowerCase()
+  const st=document.getElementById('appt-status-filter').value
+  const dt=document.getElementById('appt-date-filter').value
+  renderAppts(allAppts.filter(a=>{
+    const nm=(a.patients?.full_name||'').toLowerCase()
+    return(!s||nm.includes(s))&&(!st||a.status===st)&&(!dt||a.scheduled_at?.startsWith(dt))
+  }))
+}
+window.saveAppt=async()=>{
+  const id=document.getElementById('appt-id').value
+  const row={patient_id:document.getElementById('appt-patient').value,doctor_id:document.getElementById('appt-doctor').value,scheduled_at:document.getElementById('appt-datetime').value,type:document.getElementById('appt-type').value,status:document.getElementById('appt-status').value,duration_minutes:+document.getElementById('appt-duration').value,notes:document.getElementById('appt-notes').value,organization_id:orgId}
+  if(!row.patient_id||!row.doctor_id||!row.scheduled_at){toast('تحقق من البيانات','المريض والطبيب والوقت مطلوبون','warning');return}
+  const{error}=id?await sb.from('appointments').update(row).eq('id',id):await sb.from('appointments').insert(row)
+  if(error){toast('خطأ',error.message,'error');return}
+  toast(id?'تم التحديث':'تمت الإضافة','','success');closeModal('modal-appt');loadAppts();loadDashboard()
+  // تحديث العرض الأسبوعي لو كان مفتوحاً
+  if(document.getElementById('page-week-view')?.classList.contains('active')) loadWeekView()
+}
+window.editAppt=async(id)=>{
+  const{data:a}=await sb.from('appointments').select('*').eq('id',id).single()
+  document.getElementById('appt-id').value=a.id
+  document.getElementById('appt-patient').value=a.patient_id
+  document.getElementById('appt-doctor').value=a.doctor_id
+  document.getElementById('appt-datetime').value=new Date(a.scheduled_at).toISOString().slice(0,16)
+  document.getElementById('appt-type').value=a.type
+  document.getElementById('appt-status').value=a.status
+  document.getElementById('appt-duration').value=a.duration_minutes||30
+  document.getElementById('appt-notes').value=a.notes||''
+  document.getElementById('appt-modal-title').textContent='تعديل الموعد'
+  openModal('modal-appt')
+}
+window.deleteAppt=async(id)=>{
+  if(!confirm('حذف هذا الموعد؟'))return
+  await sb.from('appointments').delete().eq('id',id)
+  toast('تم الحذف','','success');loadAppts()
+}
+
+// ── Patients ──
+async function loadPatients(){
+  const{data}=await sb.from('patients').select('*,profiles!patients_assigned_doctor_id_fkey(full_name)').eq('organization_id',orgId).order('created_at',{ascending:false})
+  allPatients=data||[]
+  document.getElementById('patients-count').textContent=`${allPatients.length} مريض`
+  renderPatients(allPatients)
+  const{data:docs}=await sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
+  const sel=document.getElementById('patient-doctor')
+  sel.innerHTML='<option value="">— بلا طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
+}
+function renderPatients(data){
+  const tb=document.getElementById('patients-table')
+  if(!data.length){tb.innerHTML='<tr><td colspan="7" class="table-empty">لا يوجد مرضى</td></tr>';return}
+  tb.innerHTML=data.map(p=>`<tr><td><code>${p.mrn}</code></td><td>${p.full_name}</td><td>${p.gender==='male'?'ذكر':'أنثى'}</td><td>${p.phone||'—'}</td><td>${p.profiles?.full_name||'—'}</td><td>${badge(p.status)}</td><td><button class="btn btn-ghost btn-sm btn-icon" onclick="editPatient('${p.id}')"><i class="fa-solid fa-pen"></i></button></td></tr>`).join('')
+}
+window.filterPatients=()=>{
+  const s=document.getElementById('patient-search').value.toLowerCase()
+  renderPatients(allPatients.filter(p=>(p.full_name||'').toLowerCase().includes(s)||(p.mrn||'').toLowerCase().includes(s)))
+}
+window.savePatient=async()=>{
+  const id=document.getElementById('patient-id').value
+  const name=document.getElementById('patient-name').value.trim()
+  if(!name){toast('الاسم مطلوب','','warning');return}
+  const row={full_name:name,gender:document.getElementById('patient-gender').value,date_of_birth:document.getElementById('patient-dob').value||null,phone:document.getElementById('patient-phone').value,email:document.getElementById('patient-email').value,blood_type:document.getElementById('patient-blood').value||null,assigned_doctor_id:document.getElementById('patient-doctor').value||null,insurance_company:document.getElementById('patient-insurance').value,address:document.getElementById('patient-address').value,notes:document.getElementById('patient-notes').value,organization_id:orgId,status:'active'}
+  if(!id){const{data:last}=await sb.from('patients').select('mrn').eq('organization_id',orgId).order('created_at',{ascending:false}).limit(1);const n=(last?.[0]?.mrn?.split('-').pop()||999);row.mrn=`MRN-${new Date().getFullYear()}-${String(+n+1).padStart(4,'0')}`}
+  const{error}=id?await sb.from('patients').update(row).eq('id',id):await sb.from('patients').insert(row)
+  if(error){toast('خطأ',error.message,'error');return}
+  toast(id?'تم التحديث':'تمت الإضافة','','success');closeModal('modal-patient');loadPatients()
+}
+window.editPatient=async(id)=>{
+  const{data:p}=await sb.from('patients').select('*').eq('id',id).single()
+  document.getElementById('patient-id').value=p.id
+  document.getElementById('patient-name').value=p.full_name
+  document.getElementById('patient-gender').value=p.gender||'male'
+  document.getElementById('patient-dob').value=p.date_of_birth||''
+  document.getElementById('patient-phone').value=p.phone||''
+  document.getElementById('patient-email').value=p.email||''
+  document.getElementById('patient-blood').value=p.blood_type||''
+  document.getElementById('patient-doctor').value=p.assigned_doctor_id||''
+  document.getElementById('patient-insurance').value=p.insurance_company||''
+  document.getElementById('patient-address').value=p.address||''
+  document.getElementById('patient-notes').value=p.notes||''
+  document.getElementById('patient-modal-title').textContent='تعديل بيانات المريض'
+  openModal('modal-patient')
+}
+
+// ── Doctors ──
+async function loadDoctors(){
+  const{data}=await sb.from('profiles').select('*').eq('organization_id',orgId).eq('role','doctor')
+  const g=document.getElementById('doctors-grid')
+  const colors=['avatar-blue','avatar-green','avatar-purple','avatar-amber']
+  g.innerHTML=(data||[]).map((d,i)=>`<div class="card" style="padding:20px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div class="avatar avatar-md ${colors[i%4]}">${d.full_name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div><div><div style="font-weight:700">${d.full_name}</div><div style="font-size:12px;color:var(--text-muted)">${d.specialty||'طبيب عام'}</div></div></div><div style="font-size:12px;color:var(--text-muted)">${d.phone||''}</div></div>`).join('')||'<div style="color:var(--text-muted);padding:16px">لا يوجد أطباء</div>'
+}
+
+// ── Employees ──
+async function loadEmployeesWithEdit(){
+  const[{data},{data:branches}]=await Promise.all([
+    sb.from('profiles').select('*,branches(name)').eq('organization_id',orgId).order('role'),
+    sb.from('branches').select('id,name').eq('organization_id',orgId)
+  ])
+  const roles={admin:'مدير',doctor:'طبيب',reception:'استقبال',accountant:'محاسب'}
+  const tb=document.getElementById('employees-table')
+  tb.innerHTML=(data||[]).map(e=>`<tr><td>${e.full_name}</td><td>${roles[e.role]||e.role}</td><td>${e.phone||'—'}</td><td>${e.branches?.name||'—'}</td><td>${badge(e.is_active?'active':'inactive')}</td><td><button class="btn btn-ghost btn-sm btn-icon" onclick="editEmployee('${e.id}')"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-${e.is_active?'warning':'success'} btn-sm" onclick="toggleEmployee('${e.id}',${!e.is_active})">${e.is_active?'تعليق':'تفعيل'}</button></td></tr>`).join('')||'<tr><td colspan="6" class="table-empty">لا يوجد موظفون</td></tr>'
+  const bsel=document.getElementById('emp-branch')
+  if(bsel)bsel.innerHTML='<option value="">— بلا فرع —</option>'+(branches||[]).map(b=>`<option value="${b.id}">${b.name}</option>`).join('')
+}
+window.editEmployee=async(id)=>{
+  const{data:e}=await sb.from('profiles').select('*').eq('id',id).single()
+  ;['emp-id','emp-name','emp-role','emp-phone','emp-specialty','emp-branch','emp-active'].forEach(k=>{
+    const el=document.getElementById(k);if(!el)return
+    const map={id:e.id,name:e.full_name,role:e.role,phone:e.phone||'',specialty:e.specialty||'',branch:e.branch_id||'',active:String(e.is_active)}
+    el.value=map[k.replace('emp-','')]||''
+  })
+  ;['emp-email','emp-pass'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})
+  document.getElementById('emp-modal-title').textContent='تعديل بيانات الموظف'
+  openModal('modal-employee')
+}
+window.saveEmployee=async()=>{
+  const id=document.getElementById('emp-id').value
+  const name=document.getElementById('emp-name').value.trim()
+  if(!name){toast('الاسم مطلوب','','warning');return}
+  const row={full_name:name,role:document.getElementById('emp-role').value,phone:document.getElementById('emp-phone').value,specialty:document.getElementById('emp-specialty').value,branch_id:document.getElementById('emp-branch').value||null,is_active:document.getElementById('emp-active').value==='true'}
+  if(id){const{error}=await sb.from('profiles').update(row).eq('id',id);if(error){toast('خطأ',error.message,'error');return}}
+  else{row.organization_id=orgId;const{error}=await sb.from('profiles').insert(row);if(error){toast('خطأ',error.message,'error');return}}
+  toast(id?'تم التحديث':'تمت الإضافة','','success');closeModal('modal-employee');loadEmployeesWithEdit()
+}
+window.toggleEmployee=async(id,active)=>{
+  await sb.from('profiles').update({is_active:active}).eq('id',id)
+  toast(active?'تم التفعيل':'تم التعليق','','success');loadEmployeesWithEdit()
+}
+
+// ── Invoices ──
+let allInvoices=[]
+async function loadInvoices(){
+  const{data}=await sb.from('invoices').select('*,patients(full_name)').eq('organization_id',orgId).order('created_at',{ascending:false})
+  allInvoices=data||[]
+  renderInvoices(allInvoices)
+}
+function renderInvoices(data){
+  const tb=document.getElementById('invoices-table')
+  tb.innerHTML=data.map(i=>`<tr><td><code>${i.invoice_number}</code></td><td>${i.patients?.full_name||'—'}</td><td>${fmoney(i.total)}</td><td>${fmoney(i.paid_amount)}</td><td>${fmoney(i.remaining)}</td><td>${badge(i.status)}</td><td></td></tr>`).join('')||'<tr><td colspan="7" class="table-empty">لا توجد فواتير</td></tr>'
+}
+window.filterInvoices=()=>{
+  const s=document.getElementById('inv-search').value.toLowerCase()
+  const st=document.getElementById('inv-status-filter').value
+  renderInvoices(allInvoices.filter(i=>(!s||(i.invoice_number||'').toLowerCase().includes(s))&&(!st||i.status===st)))
+}
+
+// ── Inventory ──
+async function loadInventory(){
+  const{data}=await sb.from('inventory').select('*').eq('organization_id',orgId).order('name')
+  const tb=document.getElementById('inventory-table')
+  tb.innerHTML=(data||[]).map(i=>`<tr><td>${i.name}</td><td>${i.category||'—'}</td><td style="color:${i.quantity<=i.min_quantity?'var(--danger)':'inherit'};font-weight:${i.quantity<=i.min_quantity?700:400}">${i.quantity}</td><td>${i.min_quantity}</td><td>${i.unit||'—'}</td><td>${badge(i.is_active?'active':'inactive')}</td><td></td></tr>`).join('')||'<tr><td colspan="7" class="table-empty">لا يوجد مخزون</td></tr>'
+}
+
+// ── Branches ──
+async function loadBranches(){
+  const{data}=await sb.from('branches').select('*').eq('organization_id',orgId)
+  const g=document.getElementById('branches-grid')
+  g.innerHTML=(data||[]).map(b=>`<div class="card" style="padding:20px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><i class="fa-solid fa-code-branch" style="color:var(--primary)"></i><strong>${b.name}</strong>${b.is_main?'<span class="badge badge-blue">رئيسي</span>':''}</div><div style="font-size:13px;color:var(--text-muted)">${b.phone||''}</div><div style="font-size:13px;color:var(--text-muted)">${b.address||''}</div></div>`).join('')||'<div style="color:var(--text-muted)">لا توجد فروع</div>'
+}
+
+// ── Reports ──
+async function loadReports(){
+  const m=new Date();const ms=new Date(m.getFullYear(),m.getMonth(),1).toISOString()
+  const[{data:rev},{count:pts},{count:apts}]=await Promise.all([
+    sb.from('invoices').select('total,paid_amount').eq('organization_id',orgId).gte('created_at',ms),
+    sb.from('patients').select('*',{count:'exact',head:true}).eq('organization_id',orgId),
+    sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).gte('created_at',ms)
+  ])
+  const total=(rev||[]).reduce((s,r)=>s+(r.total||0),0)
+  const paid=(rev||[]).reduce((s,r)=>s+(r.paid_amount||0),0)
+  document.getElementById('report-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">إيرادات الشهر</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-coins"></i></div></div><div class="stat-value">${fmoney(total)}</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">المحصّل</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-check-circle"></i></div></div><div class="stat-value">${fmoney(paid)}</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي المرضى</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-users"></i></div></div><div class="stat-value">${pts||0}</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد الشهر</span><div class="stat-icon" style="background:#DBEAFE;color:#1D4ED8"><i class="fa-solid fa-calendar"></i></div></div><div class="stat-value">${apts||0}</div></div>`
+  await buildCharts()
+}
+async function buildCharts(){
+  const months=[];const labels=[]
+  for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);months.push(d);labels.push(d.toLocaleDateString('ar-EG',{month:'short'}))}
+  const[aD,rD,sD,pD]=await Promise.all([
+    Promise.all(months.map(m=>sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).gte('scheduled_at',new Date(m.getFullYear(),m.getMonth(),1).toISOString()).lte('scheduled_at',new Date(m.getFullYear(),m.getMonth()+1,0).toISOString()))),
+    Promise.all(months.map(m=>sb.from('invoices').select('total').eq('organization_id',orgId).eq('status','paid').gte('created_at',new Date(m.getFullYear(),m.getMonth(),1).toISOString()).lte('created_at',new Date(m.getFullYear(),m.getMonth()+1,0).toISOString()))),
+    sb.from('appointments').select('status').eq('organization_id',orgId),
+    Promise.all(months.map(m=>sb.from('patients').select('*',{count:'exact',head:true}).eq('organization_id',orgId).gte('created_at',new Date(m.getFullYear(),m.getMonth(),1).toISOString()).lte('created_at',new Date(m.getFullYear(),m.getMonth()+1,0).toISOString())))
+  ])
+  const opt={responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{family:'IBM Plex Sans Arabic'}}},x:{ticks:{font:{family:'IBM Plex Sans Arabic'}}}}}
+  const mk=(id,type,data,label,color)=>{const c=document.getElementById(id);if(!c)return;const ex=Chart.getChart(c);if(ex)ex.destroy();new Chart(c,{type,data:{labels,datasets:[{label,data,borderColor:color,backgroundColor:color+(type==='line'?'20':'99'),tension:.4,fill:type==='line'}]},options:opt})}
+  mk('chart-appts','line',aD.map(r=>r.count||0),'المواعيد','#6366F1')
+  mk('chart-revenue','line',rD.map(r=>(r.data||[]).reduce((s,i)=>s+(i.total||0),0)),'الإيرادات','#10B981')
+  mk('chart-patients','bar',pD.map(r=>r.count||0),'مرضى جدد','#1D4ED8')
+  const st={pending:0,confirmed:0,completed:0,cancelled:0};(sD.data||[]).forEach(a=>{if(st[a.status]!==undefined)st[a.status]++})
+  const cs=document.getElementById('chart-status');if(cs){const ex=Chart.getChart(cs);if(ex)ex.destroy();new Chart(cs,{type:'doughnut',data:{labels:['انتظار','مؤكد','مكتمل','ملغي'],datasets:[{data:Object.values(st),backgroundColor:['#F59E0B','#6366F1','#10B981','#EF4444']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'IBM Plex Sans Arabic'}}}}}})}
+}
+
+// ── Excel Export ──
+window.exportExcel=async(type)=>{
+  let data,fname
+  if(type==='patients'){const{data:d}=await sb.from('patients').select('mrn,full_name,gender,phone,email,blood_type,status,created_at').eq('organization_id',orgId);data=(d||[]).map(r=>({الرقم:r.mrn,الاسم:r.full_name,الجنس:r.gender==='male'?'ذكر':'أنثى',الهاتف:r.phone||'',البريد:r.email||'',فصيلة_الدم:r.blood_type||'',الحالة:r.status,التاريخ:new Date(r.created_at).toLocaleDateString('ar-EG')}));fname='المرضى'}
+  else{const{data:d}=await sb.from('invoices').select('invoice_number,total,paid_amount,status,payment_method,created_at,patients(full_name)').eq('organization_id',orgId);data=(d||[]).map(r=>({رقم_الفاتورة:r.invoice_number,المريض:r.patients?.full_name||'',الإجمالي:r.total,المدفوع:r.paid_amount,الحالة:r.status,طريقة_الدفع:r.payment_method||'',التاريخ:new Date(r.created_at).toLocaleDateString('ar-EG')}));fname='الفواتير'}
+  const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(data)
+  XLSX.utils.book_append_sheet(wb,ws,fname);XLSX.writeFile(wb,`سليم_${fname}_${new Date().toISOString().slice(0,10)}.xlsx`)
+  toast(`تم تصدير ${fname}`,'','success')
+}
+
+// ── Settings ──
+async function loadSettings(){
+  const{data:o}=await sb.from('organizations').select('*').eq('id',orgId).single()
+  if(!o)return
+  const fields={name:'set-name',phone:'set-phone',email:'set-email',address:'set-address',tax_number:'set-tax'}
+  Object.entries(fields).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.value=o[k]||''})
+}
+window.saveSettings=async()=>{
+  const row={name:document.getElementById('set-name').value,phone:document.getElementById('set-phone').value,email:document.getElementById('set-email').value,address:document.getElementById('set-address').value,tax_number:document.getElementById('set-tax').value}
+  const{error}=await sb.from('organizations').update(row).eq('id',orgId)
+  if(error){toast('خطأ',error.message,'error');return}
+  document.querySelectorAll('[data-org-name]').forEach(e=>e.textContent=row.name)
+  toast('تم حفظ بيانات العيادة','','success')
+}
+window.changePassword=async()=>{
+  const np=document.getElementById('set-new-pass').value
+  const cp=document.getElementById('set-confirm-pass').value
+  if(!np||np.length<6){toast('6 أحرف على الأقل','','warning');return}
+  if(np!==cp){toast('كلمتا المرور غير متطابقتين','','warning');return}
+  const{error}=await sb.auth.updateUser({password:np})
+  if(error){toast('خطأ',error.message,'error');return}
+  toast('تم تغيير كلمة المرور','','success')
+  ;['set-old-pass','set-new-pass','set-confirm-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''})
+}
+
+// ── Selects for modals ──
+async function loadSelects(){
+  const[{data:pts},{data:docs}]=await Promise.all([
+    sb.from('patients').select('id,full_name').eq('organization_id',orgId).order('full_name'),
+    sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
+  ])
+  const ps=document.getElementById('appt-patient'),ds=document.getElementById('appt-doctor')
+  ps.innerHTML='<option value="">— اختر مريض —</option>'+(pts||[]).map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('')
+  ds.innerHTML='<option value="">— اختر طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
+}
+
+// ── Realtime Dashboard ──
+let notifList=[]
+function setupRealtime(){
+  sb.channel('clinic_admin')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'appointments',filter:`organization_id=eq.${orgId}`},()=>{
+      addNotif('موعد جديد','تمت إضافة موعد جديد');toast('موعد جديد','تمت الإضافة','info');loadDashboard()
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'patients',filter:`organization_id=eq.${orgId}`},()=>{
+      addNotif('مريض جديد','تم تسجيل مريض جديد')
+    })
+    .subscribe()
+}
+function addNotif(title,msg){
+  notifList.unshift({title,msg,time:new Date()})
+  const cnt=document.getElementById('notif-count')
+  if(cnt){cnt.style.display='flex';cnt.textContent=notifList.length}
+}
+document.getElementById('notif-btn')?.addEventListener('click',()=>{
+  const el=document.getElementById('notif-list')
+  if(el)el.innerHTML=notifList.length?notifList.map(n=>`<div style="padding:12px 16px;border-bottom:1px solid var(--border)"><div style="font-weight:600;font-size:13px">${n.title}</div><div style="font-size:12px;color:var(--text-muted)">${n.msg}</div><div style="font-size:11px;color:var(--text-light);margin-top:4px">${new Date(n.time).toLocaleTimeString('ar-EG')}</div></div>`).join(''):'<div style="text-align:center;padding:24px;color:var(--text-muted)">لا توجد إشعارات</div>'
+  openModal('modal-notif')
+  const cnt=document.getElementById('notif-count');if(cnt)cnt.style.display='none'
+})
+
+// ── Modal auto-reset ──
+const origOpen=window.openModal
+window.openModal=id=>{
+  if(id==='modal-appt'){document.getElementById('appt-id').value='';document.getElementById('appt-modal-title').textContent='موعد جديد';document.getElementById('appt-notes').value=''}
+  if(id==='modal-patient'){document.getElementById('patient-id').value='';document.getElementById('patient-modal-title').textContent='مريض جديد';['patient-name','patient-dob','patient-phone','patient-email','patient-insurance','patient-address','patient-notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})}
+  if(id==='modal-employee'){document.getElementById('emp-id').value='';document.getElementById('emp-modal-title').textContent='موظف جديد';['emp-name','emp-phone','emp-specialty','emp-email','emp-pass'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})}
+  origOpen(id)
+}
+
+// ── Close modals on overlay click ──
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}))
+
+// ══════════════════════════════════════════════════════
+// ★ التقرير المالي — متصل بـ Supabase بالكامل ★
+// ══════════════════════════════════════════════════════
+let finPeriod='month'
+
+async function loadFinancial(period='month'){
+  finPeriod=period
+  ;['month','quarter','year'].forEach(p=>{
+    const btn=document.getElementById('fin-btn-'+p)
+    if(btn){btn.style.borderColor=p===period?'var(--primary)':'var(--border)';btn.style.color=p===period?'var(--primary)':'var(--text-muted)'}
+  })
+  const now=new Date()
+  let fromDate
+  if(period==='month') fromDate=new Date(now.getFullYear(),now.getMonth(),1)
+  else if(period==='quarter') fromDate=new Date(now.getFullYear(),Math.floor(now.getMonth()/3)*3,1)
+  else fromDate=new Date(now.getFullYear(),0,1)
+  const{data:invs,error}=await sb.from('invoices').select('total,paid_amount,remaining,status,payment_method,created_at').eq('organization_id',orgId).gte('created_at',fromDate.toISOString()).lte('created_at',now.toISOString())
+  if(error){toast('خطأ في التقرير المالي',error.message,'error');return}
+  const list=invs||[]
+  const totalRev=list.reduce((s,i)=>s+(i.total||0),0)
+  const totalPaid=list.reduce((s,i)=>s+(i.paid_amount||0),0)
+  const totalRem=list.reduce((s,i)=>s+(i.remaining||0),0)
+  const margin=totalRev>0?Math.round(totalPaid/totalRev*100):0
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  set('fin-revenue',fmoney(totalRev));set('fin-revenue-change',`${list.length} فاتورة في هذه الفترة`)
+  set('fin-profit',fmoney(totalPaid));set('fin-profit-margin',`هامش الاستيفاء: ${margin}%`)
+  set('fin-paid',fmoney(totalPaid));set('fin-paid-pct',`${margin}% من الإجمالي`)
+  set('fin-remaining',fmoney(totalRem));set('fin-invoices-count',`${list.filter(i=>i.status!=='paid').length} فاتورة غير مكتملة`)
+  // شريط طرق الدفع
+  const payMap={cash:{label:'كاش',color:'#1B6CA8'},card:{label:'بطاقة',color:'#8B5CF6'},insurance:{label:'تأمين',color:'#10B981'},transfer:{label:'تحويل',color:'#F59E0B'}}
+  const payTotals={}
+  list.forEach(i=>{const m=i.payment_method||'cash';payTotals[m]=(payTotals[m]||0)+(i.paid_amount||0)})
+  const barEl=document.getElementById('fin-pay-bar'),legEl=document.getElementById('fin-pay-legend')
+  if(barEl&&legEl){
+    barEl.innerHTML=Object.entries(payTotals).map(([m,v])=>{
+      const pct=totalPaid>0?Math.round(v/totalPaid*100):0
+      const cfg=payMap[m]||{label:m,color:'#64748B'}
+      return`<div style="width:${pct}%;background:${cfg.color};height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff">${pct>8?pct+'%':''}</div>`
+    }).join('')
+    legEl.innerHTML=Object.entries(payTotals).map(([m,v])=>{
+      const pct=totalPaid>0?Math.round(v/totalPaid*100):0
+      const cfg=payMap[m]||{label:m,color:'#64748B'}
+      return`<div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;margin-bottom:6px"><div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:${cfg.color}"></div>${cfg.label}</div><div style="display:flex;gap:12px"><span style="color:var(--text-muted)">${pct}%</span><span style="font-weight:600">${fmoney(v)}</span></div></div>`
+    }).join('')
+  }
+  // مخطط الحالات
+  const statusCount={paid:0,partial:0,draft:0,overdue:0}
+  list.forEach(i=>{if(statusCount[i.status]!==undefined)statusCount[i.status]++})
+  const cs=document.getElementById('fin-status-chart')
+  if(cs){const ex=Chart.getChart(cs);if(ex)ex.destroy();new Chart(cs,{type:'doughnut',data:{labels:['مدفوع','جزئي','مسودة','متأخر'],datasets:[{data:Object.values(statusCount),backgroundColor:['#10B981','#F59E0B','#94A3B8','#EF4444']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'IBM Plex Sans Arabic'},padding:12}}}}})}
+  // المقارنة الشهرية
+  await loadMonthlyComparison()
+}
+
+async function loadMonthlyComparison(){
+  const months=[]
+  for(let i=5;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);months.push(new Date(d))}
+  const monthNames=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+  const rows=await Promise.all(months.map(async m=>{
+    const from=new Date(m.getFullYear(),m.getMonth(),1).toISOString()
+    const to=new Date(m.getFullYear(),m.getMonth()+1,0,23,59,59).toISOString()
+    const{data}=await sb.from('invoices').select('total,paid_amount,remaining,status').eq('organization_id',orgId).gte('created_at',from).lte('created_at',to)
+    const list=data||[]
+    return{label:`${monthNames[m.getMonth()]} ${m.getFullYear()}`,count:list.length,total:list.reduce((s,i)=>s+(i.total||0),0),paid:list.reduce((s,i)=>s+(i.paid_amount||0),0),rem:list.reduce((s,i)=>s+(i.remaining||0),0),allPaid:list.length>0&&list.every(i=>i.status==='paid')}
+  }))
+  const tb=document.getElementById('fin-monthly-table')
+  if(tb)tb.innerHTML=rows.map(r=>`<tr><td><strong>${r.label}</strong></td><td><span class="badge badge-blue">${r.count}</span></td><td style="font-weight:600;color:var(--primary)">${fmoney(r.total)}</td><td style="color:var(--success)">${fmoney(r.paid)}</td><td style="color:${r.rem>0?'var(--danger)':'var(--text-muted)'}">${fmoney(r.rem)}</td><td>${r.allPaid&&r.count>0?'<span class="badge badge-success">مكتمل</span>':r.count===0?'<span class="badge badge-gray">لا يوجد</span>':'<span class="badge badge-warning">جزئي</span>'}</td></tr>`).join('')||'<tr><td colspan="6" class="table-empty">لا توجد بيانات</td></tr>'
+}
+
+// ══════════════════════════════════════════════════════
+// ★ مركز التصدير ★
+// ══════════════════════════════════════════════════════
+window.exportData=async(type,fmt)=>{
+  toast('جارٍ التصدير...','','info')
+  try{
+    let data,fname
+    if(type==='patients'){
+      const{data:d}=await sb.from('patients').select('mrn,full_name,gender,phone,email,blood_type,status,created_at').eq('organization_id',orgId)
+      data=(d||[]).map(r=>({الرقم:r.mrn,الاسم:r.full_name,الجنس:r.gender==='male'?'ذكر':'أنثى',الهاتف:r.phone||'',البريد:r.email||'',فصيلة_الدم:r.blood_type||'',الحالة:r.status,التاريخ:new Date(r.created_at).toLocaleDateString('ar-EG')}));fname='المرضى'
+    }else if(type==='invoices'){
+      const{data:d}=await sb.from('invoices').select('invoice_number,total,paid_amount,remaining,status,payment_method,created_at,patients(full_name)').eq('organization_id',orgId)
+      data=(d||[]).map(r=>({رقم_الفاتورة:r.invoice_number,المريض:r.patients?.full_name||'',الإجمالي:r.total,المدفوع:r.paid_amount,المتبقي:r.remaining,الحالة:r.status,طريقة_الدفع:r.payment_method||'',التاريخ:new Date(r.created_at).toLocaleDateString('ar-EG')}));fname='الفواتير'
+    }else if(type==='appointments'){
+      const{data:d}=await sb.from('appointments').select('scheduled_at,type,status,notes,patients(full_name),profiles!appointments_doctor_id_fkey(full_name)').eq('organization_id',orgId).order('scheduled_at',{ascending:false})
+      data=(d||[]).map(r=>({المريض:r.patients?.full_name||'',الطبيب:r.profiles?.full_name||'',التاريخ:new Date(r.scheduled_at).toLocaleDateString('ar-EG'),الوقت:new Date(r.scheduled_at).toLocaleTimeString('ar-EG'),النوع:typeLabel[r.type]||r.type,الحالة:r.status}));fname='المواعيد'
+    }else if(type==='employees'){
+      const{data:d}=await sb.from('profiles').select('full_name,role,phone,specialty,is_active').eq('organization_id',orgId)
+      const roles={admin:'مدير',doctor:'طبيب',reception:'استقبال',accountant:'محاسب'}
+      data=(d||[]).map(r=>({الاسم:r.full_name,الدور:roles[r.role]||r.role,الهاتف:r.phone||'',التخصص:r.specialty||'',الحالة:r.is_active?'نشط':'غير نشط'}));fname='الموظفين'
+    }
+    if(!data){toast('خطأ','نوع التصدير غير معروف','error');return}
+    const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(data)
+    XLSX.utils.book_append_sheet(wb,ws,fname);XLSX.writeFile(wb,`سليم_${fname}_${new Date().toISOString().slice(0,10)}.xlsx`)
+    toast(`تم تصدير ${fname} ✅`,`${data.length} سجل`,'success')
+  }catch(e){toast('خطأ في التصدير',e.message,'error')}
+}
+window.printReport=()=>{toast('جارٍ الطباعة...','','info');setTimeout(()=>window.print(),400)}
+window.scheduleExport=()=>{
+  const email=document.getElementById('sched-email')?.value
+  if(!email){toast('أدخل البريد الإلكتروني','','warning');return}
+  toast('تم جدولة التصدير ✅',`سيتم الإرسال إلى ${email}`,'success')
+}
+
+// ══════════════════════════════════════════════════════
+// ★ الأدوار والصلاحيات ★
+// ══════════════════════════════════════════════════════
+const PERMS_DEF={
+  admin:{'لوحة التحكم':{view:true,edit:true,delete:true},'المواعيد':{view:true,edit:true,delete:true},'العرض الأسبوعي':{view:true,edit:true,delete:false},'المرضى':{view:true,edit:true,delete:true},'الفواتير':{view:true,edit:true,delete:true},'التقرير المالي':{view:true,edit:false,delete:false},'المخزون':{view:true,edit:true,delete:true},'الموظفون':{view:true,edit:true,delete:true},'الأطباء':{view:true,edit:true,delete:true},'الصلاحيات':{view:true,edit:true,delete:false},'مركز التصدير':{view:true,edit:false,delete:false},'الإعدادات':{view:true,edit:true,delete:false}},
+  doctor:{'لوحة التحكم':{view:true,edit:false,delete:false},'المواعيد':{view:true,edit:false,delete:false},'العرض الأسبوعي':{view:true,edit:false,delete:false},'المرضى':{view:true,edit:true,delete:false},'الفواتير':{view:false,edit:false,delete:false},'التقرير المالي':{view:false,edit:false,delete:false},'المخزون':{view:true,edit:false,delete:false},'الموظفون':{view:false,edit:false,delete:false},'الأطباء':{view:true,edit:false,delete:false},'الصلاحيات':{view:false,edit:false,delete:false},'مركز التصدير':{view:false,edit:false,delete:false},'الإعدادات':{view:false,edit:false,delete:false}},
+  reception:{'لوحة التحكم':{view:true,edit:false,delete:false},'المواعيد':{view:true,edit:true,delete:false},'العرض الأسبوعي':{view:true,edit:false,delete:false},'المرضى':{view:true,edit:true,delete:false},'الفواتير':{view:true,edit:true,delete:false},'التقرير المالي':{view:false,edit:false,delete:false},'المخزون':{view:true,edit:false,delete:false},'الموظفون':{view:false,edit:false,delete:false},'الأطباء':{view:true,edit:false,delete:false},'الصلاحيات':{view:false,edit:false,delete:false},'مركز التصدير':{view:false,edit:false,delete:false},'الإعدادات':{view:false,edit:false,delete:false}},
+  accountant:{'لوحة التحكم':{view:true,edit:false,delete:false},'المواعيد':{view:true,edit:false,delete:false},'العرض الأسبوعي':{view:false,edit:false,delete:false},'المرضى':{view:false,edit:false,delete:false},'الفواتير':{view:true,edit:true,delete:false},'التقرير المالي':{view:true,edit:false,delete:false},'المخزون':{view:true,edit:false,delete:false},'الموظفون':{view:true,edit:false,delete:false},'الأطباء':{view:false,edit:false,delete:false},'الصلاحيات':{view:false,edit:false,delete:false},'مركز التصدير':{view:true,edit:false,delete:false},'الإعدادات':{view:false,edit:false,delete:false}},
+}
+let currentRole='admin'
+
+async function loadRoles(){
+  const{data}=await sb.from('profiles').select('role').eq('organization_id',orgId)
+  const counts={admin:0,doctor:0,reception:0,accountant:0}
+  ;(data||[]).forEach(p=>{if(counts[p.role]!==undefined)counts[p.role]++})
+  Object.entries(counts).forEach(([role,count])=>{const el=document.getElementById('role-count-'+role);if(el)el.textContent=`${count} مستخدم`})
+  renderPerms('admin')
+}
+
+window.selectRole=function(role,el){
+  currentRole=role
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'))
+  el.classList.add('selected')
+  const names={admin:'مدير النظام',doctor:'طبيب',reception:'موظف استقبال',accountant:'محاسب'}
+  const t=document.getElementById('role-perm-title');if(t)t.textContent=`صلاحيات: ${names[role]||role}`
+  renderPerms(role)
+}
+
+function renderPerms(role){
+  const el=document.getElementById('perms-body');if(!el)return
+  const perms=PERMS_DEF[role]||{}
+  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr repeat(3,80px);gap:0;padding:8px 0;border-bottom:2px solid var(--border);margin-bottom:4px"><div style="font-size:11px;font-weight:600;color:var(--text-muted)">الوحدة</div><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-align:center">عرض</div><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-align:center">تعديل</div><div style="font-size:11px;font-weight:600;color:var(--text-muted);text-align:center">حذف</div></div>`+Object.entries(perms).map(([name,p])=>`<div style="display:grid;grid-template-columns:1fr repeat(3,80px);gap:0;padding:9px 0;border-bottom:1px solid var(--border-light);align-items:center"><div style="font-size:13px;font-weight:500">${name}</div><div style="text-align:center"><div class="perm-check ${p.view?'on':''}" onclick="togglePerm('${role}','${name}','view',this)">${p.view?'✓':''}</div></div><div style="text-align:center"><div class="perm-check ${p.edit?'on':''}" onclick="togglePerm('${role}','${name}','edit',this)">${p.edit?'✓':''}</div></div><div style="text-align:center"><div class="perm-check ${p.delete?'on':''}" onclick="togglePerm('${role}','${name}','delete',this)">${p.delete?'✓':''}</div></div></div>`).join('')
+}
+
+window.togglePerm=function(role,mod,type,el){
+  if(!PERMS_DEF[role]?.[mod])return
+  PERMS_DEF[role][mod][type]=!PERMS_DEF[role][mod][type]
+  el.classList.toggle('on');el.textContent=PERMS_DEF[role][mod][type]?'✓':''
+}
+window.setAllPerms=function(val){
+  Object.keys(PERMS_DEF[currentRole]).forEach(m=>Object.keys(PERMS_DEF[currentRole][m]).forEach(t=>PERMS_DEF[currentRole][m][t]=val))
+  renderPerms(currentRole)
+}
+window.savePerms=function(){toast('تم حفظ الصلاحيات ✅','تم تحديث صلاحيات الدور بنجاح','success')}
+
+// Override nav لإضافة loaders الجديدة
+const _origNav=window.nav
+window.nav=function(id){
+  _origNav(id)
+  if(id==='financial')loadFinancial(finPeriod)
+  if(id==='roles')loadRoles()
+  if(id==='services')loadServices()
+  if(id==='contracts')loadContracts()
+  if(id==='export'){/* static page */}
+}
+
+// ══════════════════════════════════════════════════════
+// ★ إدارة الخدمات — متصلة بـ Supabase ★
+// ══════════════════════════════════════════════════════
+let allServices=[], svcActiveFilter='all'
+
+const catLabels={consultation:'استشارة',diagnosis:'تشخيص',lab:'مختبر',radiology:'أشعة',procedure:'إجراء',therapy:'علاج'}
+const catBadge={consultation:'badge-blue',diagnosis:'badge-info',lab:'badge-warning',radiology:'badge-info',procedure:'badge-blue',therapy:'badge-gray'}
+
+async function loadServices(){
+  const{data,error}=await sb.from('services').select('*').eq('organization_id',orgId).order('name')
+  if(error){toast('خطأ',error.message,'error');return}
+  allServices=data||[]
+  // إحصائيات
+  const active=allServices.filter(s=>s.is_active)
+  const inactive=allServices.filter(s=>!s.is_active)
+  const avgPrice=allServices.length?Math.round(allServices.reduce((s,i)=>s+(i.price||0),0)/allServices.length):0
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  set('svc-stat-total',allServices.length)
+  set('svc-stat-active',active.length)
+  set('svc-stat-inactive',inactive.length)
+  set('svc-stat-avg',fmoney(avgPrice))
+  renderServices(allServices)
+}
+
+function renderServices(data){
+  const tb=document.getElementById('svc-table')
+  if(!data.length){tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد خدمات مسجلة</td></tr>';return}
+  tb.innerHTML=data.map(s=>`
+    <tr>
+      <td><div style="font-weight:600">${s.name}</div>${s.description?`<div style="font-size:11px;color:var(--text-muted)">${s.description}</div>`:''}</td>
+      <td><span class="badge ${catBadge[s.category]||'badge-gray'}">${catLabels[s.category]||s.category||'—'}</span></td>
+      <td style="font-weight:600;color:var(--primary)">${fmoney(s.price||0)}</td>
+      <td>${s.duration_minutes||30} د</td>
+      <td>${badge(s.is_active?'active':'inactive')}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="editService('${s.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-${s.is_active?'warning':'success'} btn-sm" onclick="toggleService('${s.id}',${!s.is_active})">
+          ${s.is_active?'إيقاف':'تفعيل'}
+        </button>
+      </td>
+    </tr>`).join('')
+}
+
+window.filterServices=function(cat,el){
+  svcActiveFilter=cat
+  document.querySelectorAll('#svc-cat-filters .doc-filter-chip').forEach(b=>b.classList.remove('active'))
+  el.classList.add('active')
+  const filtered=cat==='all'?allServices:allServices.filter(s=>s.category===cat)
+  renderServices(filtered)
+}
+
+window.filterServicesSearch=function(){
+  const q=document.getElementById('svc-search').value.toLowerCase()
+  const filtered=allServices.filter(s=>(s.name||'').toLowerCase().includes(q)||(catLabels[s.category]||'').includes(q))
+  renderServices(filtered)
+}
+
+window.editService=async function(id){
+  const{data:s}=await sb.from('services').select('*').eq('id',id).single()
+  if(!s)return
+  document.getElementById('svc-id').value=s.id
+  document.getElementById('svc-name').value=s.name||''
+  document.getElementById('svc-category').value=s.category||'consultation'
+  document.getElementById('svc-price').value=s.price||0
+  document.getElementById('svc-duration').value=s.duration_minutes||30
+  document.getElementById('svc-active').value=String(s.is_active!==false)
+  document.getElementById('svc-desc').value=s.description||''
+  document.getElementById('svc-modal-title').textContent='تعديل الخدمة'
+  openModal('modal-service')
+}
+
+window.saveService=async function(){
+  const id=document.getElementById('svc-id').value
+  const name=document.getElementById('svc-name').value.trim()
+  const price=parseFloat(document.getElementById('svc-price').value)||0
+  if(!name){toast('اسم الخدمة مطلوب','','warning');return}
+  if(!price){toast('السعر مطلوب','','warning');return}
+  const row={
+    name,
+    category:document.getElementById('svc-category').value,
+    price,
+    duration_minutes:parseInt(document.getElementById('svc-duration').value)||30,
+    is_active:document.getElementById('svc-active').value==='true',
+    description:document.getElementById('svc-desc').value,
+    organization_id:orgId
+  }
+  const{error}=id
+    ?await sb.from('services').update(row).eq('id',id)
+    :await sb.from('services').insert(row)
+  if(error){toast('خطأ',error.message,'error');return}
+  toast(id?'تم التحديث':'تمت الإضافة','','success')
+  closeModal('modal-service')
+  loadServices()
+}
+
+window.toggleService=async function(id,active){
+  const{error}=await sb.from('services').update({is_active:active}).eq('id',id)
+  if(error){toast('خطأ',error.message,'error');return}
+  toast(active?'تم تفعيل الخدمة':'تم إيقاف الخدمة','','success')
+  loadServices()
+}
+
+// ══════════════════════════════════════════════════════
+// ★ التعاقدات — متصلة بـ Supabase ★
+// ══════════════════════════════════════════════════════
+let allContracts=[], conActiveFilter='all'
+
+const conTypeLabels={insurance:'تأمين طبي شامل',employees:'رعاية الموظفين',checkup:'فحوصات دورية',comprehensive:'رعاية شاملة'}
+const conStatusBadge={active:'badge-success',renewal:'badge-warning',expired:'badge-danger'}
+const conStatusLabel={active:'نشط',renewal:'قيد التجديد',expired:'منتهي'}
+
+async function loadContracts(){
+  const{data,error}=await sb.from('contracts').select('*').eq('organization_id',orgId).order('created_at',{ascending:false})
+  if(error){
+    // إذا الجدول غير موجود، اعرض رسالة واضحة
+    if(error.code==='42P01'){
+      document.getElementById('con-table').innerHTML='<tr><td colspan="8" class="table-empty" style="color:var(--warning)"><i class="fa-solid fa-triangle-exclamation"></i> جدول التعاقدات غير موجود في قاعدة البيانات</td></tr>'
+      toast('تنبيه','جدول contracts غير موجود. أضفه من Supabase Dashboard','warning')
+      return
+    }
+    toast('خطأ',error.message,'error');return
+  }
+  allContracts=data||[]
+  // إحصائيات
+  const active=allContracts.filter(c=>c.status==='active')
+  const renewal=allContracts.filter(c=>c.status==='renewal')
+  const totalVal=allContracts.reduce((s,c)=>s+(c.contract_value||0),0)
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  set('con-stat-total',allContracts.length)
+  set('con-stat-active',active.length)
+  set('con-stat-renew',renewal.length)
+  set('con-stat-value',fmoney(totalVal))
+  renderContracts(allContracts)
+}
+
+function renderContracts(data){
+  const tb=document.getElementById('con-table')
+  if(!data.length){tb.innerHTML='<tr><td colspan="8" class="table-empty">لا توجد تعاقدات مسجلة</td></tr>';return}
+  const fd=d=>d?new Date(d).toLocaleDateString('ar-EG',{year:'numeric',month:'short',day:'numeric'}):'—'
+  // تحقق من انتهاء الصلاحية تلقائياً
+  const checkExpiry=c=>{
+    if(c.status==='expired')return c.status
+    if(c.end_date&&new Date(c.end_date)<new Date())return 'expired'
+    const thirtyDays=new Date();thirtyDays.setDate(thirtyDays.getDate()+30)
+    if(c.end_date&&new Date(c.end_date)<thirtyDays)return 'renewal'
+    return c.status||'active'
+  }
+  tb.innerHTML=data.map(c=>{
+    const status=checkExpiry(c)
+    const initials=(c.company_name||'XX').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
+    const colors=['avatar-blue','avatar-green','avatar-amber','avatar-purple','avatar-red']
+    const colorIdx=initials.charCodeAt(0)%colors.length
+    return`<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="avatar avatar-sm ${colors[colorIdx]}">${initials}</div>
+          <div>
+            <div style="font-weight:600">${c.company_name||'—'}</div>
+            ${c.notes?`<div style="font-size:11px;color:var(--text-muted)">${c.notes}</div>`:''}
+          </div>
+        </div>
+      </td>
+      <td>${conTypeLabels[c.contract_type]||c.contract_type||'—'}</td>
+      <td>${fd(c.start_date)}</td>
+      <td style="color:${status==='expired'?'var(--danger)':'inherit'}">${fd(c.end_date)}</td>
+      <td style="font-weight:600;color:var(--primary)">${fmoney(c.contract_value||0)}</td>
+      <td>${(c.beneficiaries||0).toLocaleString('ar-EG')}</td>
+      <td><span class="badge ${conStatusBadge[status]||'badge-gray'}">${conStatusLabel[status]||status}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="editContract('${c.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteContract('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`
+  }).join('')
+}
+
+window.filterContracts=function(status,el){
+  conActiveFilter=status
+  document.querySelectorAll('[data-status]').forEach(b=>b.classList.remove('active'))
+  el.classList.add('active')
+  if(status==='all'){renderContracts(allContracts);return}
+  renderContracts(allContracts.filter(c=>c.status===status))
+}
+
+window.filterContractsSearch=function(){
+  const q=document.getElementById('con-search').value.toLowerCase()
+  renderContracts(allContracts.filter(c=>(c.company_name||'').toLowerCase().includes(q)))
+}
+
+window.editContract=async function(id){
+  const{data:c}=await sb.from('contracts').select('*').eq('id',id).single()
+  if(!c)return
+  document.getElementById('con-id').value=c.id
+  document.getElementById('con-company').value=c.company_name||''
+  document.getElementById('con-type').value=c.contract_type||'insurance'
+  document.getElementById('con-start').value=c.start_date?.slice(0,10)||''
+  document.getElementById('con-end').value=c.end_date?.slice(0,10)||''
+  document.getElementById('con-value').value=c.contract_value||0
+  document.getElementById('con-beneficiaries').value=c.beneficiaries||0
+  document.getElementById('con-coverage').value=c.coverage_percentage||80
+  document.getElementById('con-status').value=c.status||'active'
+  document.getElementById('con-notes').value=c.notes||''
+  document.getElementById('con-modal-title').textContent='تعديل التعاقد'
+  openModal('modal-contract')
+}
+
+window.saveContract=async function(){
+  const id=document.getElementById('con-id').value
+  const company=document.getElementById('con-company').value.trim()
+  const start=document.getElementById('con-start').value
+  const end=document.getElementById('con-end').value
+  if(!company){toast('اسم الشركة مطلوب','','warning');return}
+  if(!start||!end){toast('تواريخ العقد مطلوبة','','warning');return}
+  if(new Date(start)>new Date(end)){toast('تاريخ البداية يجب أن يكون قبل الانتهاء','','warning');return}
+  const row={
+    company_name:company,
+    contract_type:document.getElementById('con-type').value,
+    start_date:start,
+    end_date:end,
+    contract_value:parseFloat(document.getElementById('con-value').value)||0,
+    beneficiaries:parseInt(document.getElementById('con-beneficiaries').value)||0,
+    coverage_percentage:parseInt(document.getElementById('con-coverage').value)||80,
+    status:document.getElementById('con-status').value,
+    notes:document.getElementById('con-notes').value,
+    organization_id:orgId
+  }
+  const{error}=id
+    ?await sb.from('contracts').update(row).eq('id',id)
+    :await sb.from('contracts').insert(row)
+  if(error){toast('خطأ',error.message,'error');return}
+  toast(id?'تم التحديث':'تمت الإضافة','','success')
+  closeModal('modal-contract')
+  loadContracts()
+}
+
+window.deleteContract=async function(id){
+  if(!confirm('حذف هذا التعاقد؟'))return
+  const{error}=await sb.from('contracts').delete().eq('id',id)
+  if(error){toast('خطأ',error.message,'error');return}
+  toast('تم الحذف','','success')
+  loadContracts()
+}
+
+// ── Reset modals الجديدة ──
+const _origOpen2=window.openModal
+window.openModal=id=>{
+  if(id==='modal-service'){
+    document.getElementById('svc-id').value=''
+    document.getElementById('svc-modal-title').textContent='خدمة جديدة'
+    ;['svc-name','svc-desc'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})
+    document.getElementById('svc-price').value=0
+    document.getElementById('svc-duration').value=30
+    document.getElementById('svc-active').value='true'
+  }
+  if(id==='modal-contract'){
+    document.getElementById('con-id').value=''
+    document.getElementById('con-modal-title').textContent='تعاقد جديد'
+    ;['con-company','con-notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})
+    document.getElementById('con-value').value=0
+    document.getElementById('con-beneficiaries').value=0
+    document.getElementById('con-coverage').value=80
+    document.getElementById('con-status').value='active'
+  }
+  _origOpen2(id)
+}
+
+// ── Init ──
+await loadSelects()
+await loadDashboard()
+setupRealtime()
+setupWeekRealtime()
+</script>
 </body>
 </html>
