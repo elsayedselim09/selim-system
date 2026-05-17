@@ -4,55 +4,195 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>سليم — الاستقبال</title>
+<meta name="theme-color" content="#1B6CA8"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="سليم"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="shared/styles.css"/>
+<link rel="stylesheet" href="shared/styles-extra.css"/>
+<style>
+/* ══ WEEK VIEW ══ */
+.week-grid-wrap{overflow-x:auto}
+.week-grid{
+  display:grid;grid-template-columns:56px repeat(7,1fr);
+  gap:0;border:1px solid var(--border);border-radius:var(--radius-lg);
+  overflow:hidden;min-width:700px;
+}
+.week-header-cell{
+  background:var(--bg);padding:10px 6px;text-align:center;
+  border-bottom:1px solid var(--border);border-right:1px solid var(--border);
+  font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;
+}
+.week-header-cell.today-col{background:var(--primary-light);color:var(--primary)}
+.week-header-cell:last-child{border-right:none}
+.week-time-col{background:var(--bg);border-right:1px solid var(--border)}
+.week-hour{
+  height:64px;display:flex;align-items:flex-start;justify-content:flex-end;
+  padding:4px 8px 0 0;font-size:10px;color:var(--text-light);
+  border-bottom:1px solid var(--border-light);
+}
+.week-day-col{border-right:1px solid var(--border);position:relative}
+.week-day-col:last-child{border-right:none}
+.week-slot{
+  height:64px;border-bottom:1px solid var(--border-light);
+  position:relative;cursor:pointer;transition:background .1s;
+}
+.week-slot:hover{background:rgba(27,108,168,.04)}
+.week-slot:last-child{border-bottom:none}
+.week-event{
+  position:absolute;right:2px;left:2px;border-radius:5px;
+  padding:3px 6px;font-size:11px;font-weight:500;cursor:pointer;
+  overflow:hidden;z-index:1;border-right:3px solid rgba(0,0,0,.15);
+  transition:transform .1s,box-shadow .1s;
+}
+.week-event:hover{transform:scale(1.01);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.week-now-line{
+  position:absolute;right:0;left:0;height:2px;
+  background:var(--danger);z-index:2;
+}
+.week-now-line::before{
+  content:'';position:absolute;right:-4px;top:-4px;
+  width:10px;height:10px;border-radius:50%;background:var(--danger);
+}
+.week-loading{
+  display:flex;align-items:center;justify-content:center;
+  height:200px;color:var(--text-muted);font-size:13px;gap:10px;
+}
+.week-spinner{
+  width:20px;height:20px;border:2px solid var(--border);
+  border-top-color:var(--primary);border-radius:50%;
+  animation:ws .7s linear infinite;
+}
+@keyframes ws{to{transform:rotate(360deg)}}
+/* ══ DOCTOR FILTER CHIPS ══ */
+.doc-filter-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);
+  font-size:12px;font-weight:500;cursor:pointer;
+  background:var(--card);color:var(--text-muted);
+  transition:all .15s;white-space:nowrap;
+}
+.doc-filter-chip:hover{border-color:var(--primary);color:var(--primary)}
+.doc-filter-chip.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+/* ══ REMINDERS ══ */
+.channel-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 14px;border-radius:8px;border:1.5px solid var(--border);
+  cursor:pointer;font-size:13px;font-weight:500;
+  background:transparent;color:var(--text-muted);transition:all .15s;
+  font-family:var(--font);
+}
+.channel-btn:hover{border-color:var(--primary);color:var(--primary)}
+.channel-btn.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+.channel-btn.whatsapp.active{border-color:#25D366;background:#F0FDF4;color:#16A34A}
+.channel-btn.sms.active{border-color:var(--warning);background:var(--warning-light);color:var(--warning)}
+.reminder-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-bottom:1px solid var(--border-light);
+  transition:background .1s;
+}
+.reminder-row:hover{background:var(--bg)}
+.reminder-row:last-child{border-bottom:none}
+.reminder-sent{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:500;color:var(--success);
+  background:var(--success-light);padding:3px 8px;border-radius:20px;
+}
+@media print{.sidebar,.topbar,.modal-overlay,.toast-wrap{display:none!important}.main-wrap{margin:0!important}}
+</style>
 </head>
 <body>
 <div class="app-layout">
 
-<!-- SIDEBAR -->
+<!-- ══ SIDEBAR ══ -->
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="sidebar-logo-icon">ZC</div>
-    <div><div class="sidebar-logo-text">سليم</div><div class="sidebar-logo-sub" data-org-name>نظام العيادة</div></div>
+    <div>
+      <div class="sidebar-logo-text">سليم</div>
+      <div class="sidebar-logo-sub" data-org-name>نظام العيادة</div>
+    </div>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section-title">الرئيسية</div>
-    <button class="nav-item active" onclick="nav('today')" id="nav-today"><i class="fa-solid fa-calendar-day"></i> مواعيد اليوم</button>
+    <button class="nav-item active" onclick="nav('today')" id="nav-today">
+      <i class="fa-solid fa-calendar-day"></i> مواعيد اليوم
+    </button>
+
+    <div class="nav-section-title">المواعيد</div>
+    <button class="nav-item" onclick="nav('appointments')" id="nav-appointments">
+      <i class="fa-solid fa-calendar-check"></i> كل المواعيد
+    </button>
+    <!-- ★ العرض الأسبوعي ★ -->
+    <button class="nav-item" onclick="nav('week-view')" id="nav-week-view">
+      <i class="fa-regular fa-calendar-week"></i> العرض الأسبوعي
+    </button>
+    <!-- ★ تذكير المرضى ★ -->
+    <button class="nav-item" onclick="nav('reminders')" id="nav-reminders">
+      <i class="fa-solid fa-bell-ring"></i> تذكير المرضى
+    </button>
+
     <div class="nav-section-title">الإدارة</div>
-    <button class="nav-item" onclick="nav('appointments')" id="nav-appointments"><i class="fa-solid fa-calendar-check"></i> كل المواعيد</button>
-    <button class="nav-item" onclick="nav('patients')" id="nav-patients"><i class="fa-solid fa-users"></i> المرضى</button>
+    <button class="nav-item" onclick="nav('patients')" id="nav-patients">
+      <i class="fa-solid fa-users"></i> المرضى
+    </button>
+
     <div class="nav-section-title">المالية</div>
-    <button class="nav-item" onclick="nav('pos')" id="nav-pos"><i class="fa-solid fa-cash-register"></i> فاتورة زيارة</button>
-    <button class="nav-item" onclick="nav('invoices')" id="nav-invoices"><i class="fa-solid fa-file-invoice-dollar"></i> الفواتير</button>
+    <button class="nav-item" onclick="nav('pos')" id="nav-pos">
+      <i class="fa-solid fa-cash-register"></i> فاتورة زيارة
+    </button>
+    <button class="nav-item" onclick="nav('invoices')" id="nav-invoices">
+      <i class="fa-solid fa-file-invoice-dollar"></i> الفواتير
+    </button>
   </nav>
   <div class="sidebar-user">
     <div class="sidebar-user-inner" onclick="doSignOut()">
       <div class="sidebar-avatar" data-user-avatar>RC</div>
-      <div><div class="sidebar-user-name" data-user-name>جاري...</div><div class="sidebar-user-role" data-user-role></div></div>
+      <div>
+        <div class="sidebar-user-name" data-user-name>جاري...</div>
+        <div class="sidebar-user-role" data-user-role></div>
+      </div>
       <i class="fa-solid fa-arrow-right-from-bracket" style="color:rgba(255,255,255,.3);font-size:12px;margin-right:auto"></i>
     </div>
   </div>
 </aside>
 
-<!-- MAIN -->
+<!-- ══ MAIN ══ -->
 <div class="main-wrap">
   <header class="topbar">
-    <div><div class="topbar-title" id="topbar-title">مواعيد اليوم</div><div class="topbar-subtitle" id="topbar-date"></div></div>
+    <div>
+      <div class="topbar-title" id="topbar-title">مواعيد اليوم</div>
+      <div class="topbar-subtitle" id="topbar-date"></div>
+    </div>
     <div class="topbar-actions">
-      <button class="btn btn-primary btn-sm" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+      <button class="topbar-search-btn" onclick="openGlobalSearch(sb,orgId)" title="بحث (Ctrl+K)">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>بحث...</span>
+        <span class="kbd">Ctrl+K</span>
+      </button>
+      <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()" title="الوضع الليلي">
+        <i class="fa-regular fa-moon" id="dark-toggle-icon"></i>
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-appt')">
+        <i class="fa-solid fa-plus"></i> موعد جديد
+      </button>
     </div>
   </header>
 
   <div class="page-content">
 
-    <!-- TODAY -->
+    <!-- ══ TODAY ══ -->
     <div class="page active" id="page-today">
       <div class="page-header">
         <div><div class="page-header-title">مواعيد اليوم</div></div>
-        <button class="btn btn-primary" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="nav('week-view')"><i class="fa-regular fa-calendar-week"></i> أسبوعي</button>
+          <button class="btn btn-primary" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+        </div>
       </div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي اليوم</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-day"></i></div></div><div class="stat-value" id="r-stat-total">—</div></div>
@@ -61,7 +201,10 @@
         <div class="stat-card"><div class="stat-header"><span class="stat-label">ملغية</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-times-circle"></i></div></div><div class="stat-value" id="r-stat-cancel">—</div></div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="card-title">قائمة المواعيد</span><button class="btn btn-ghost btn-sm" onclick="loadToday()"><i class="fa-solid fa-refresh"></i> تحديث</button></div>
+        <div class="card-header">
+          <span class="card-title">قائمة المواعيد</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadToday()"><i class="fa-solid fa-refresh"></i> تحديث</button>
+        </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>#</th><th>المريض</th><th>الطبيب</th><th>الوقت</th><th>النوع</th><th>الحالة</th><th>إجراءات</th></tr></thead>
@@ -71,11 +214,14 @@
       </div>
     </div>
 
-    <!-- ALL APPOINTMENTS -->
+    <!-- ══ ALL APPOINTMENTS ══ -->
     <div class="page" id="page-appointments">
       <div class="page-header">
         <div><div class="page-header-title">كل المواعيد</div></div>
-        <button class="btn btn-primary" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="nav('week-view')"><i class="fa-regular fa-calendar-week"></i> أسبوعي</button>
+          <button class="btn btn-primary" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+        </div>
       </div>
       <div class="card">
         <div class="card-header">
@@ -98,7 +244,195 @@
       </div>
     </div>
 
-    <!-- PATIENTS -->
+    <!-- ══ ★ العرض الأسبوعي ★ ══ -->
+    <div class="page" id="page-week-view">
+      <div class="page-header">
+        <div>
+          <div class="page-header-title">
+            <i class="fa-regular fa-calendar-week" style="color:var(--primary);margin-left:8px"></i>
+            العرض الأسبوعي
+          </div>
+          <div class="page-header-sub" id="week-range-label">جاري التحميل...</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="changeWeek(-1)"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="btn btn-outline btn-sm" onclick="goToToday()">اليوم</button>
+          <button class="btn btn-ghost btn-sm" onclick="changeWeek(1)"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> موعد جديد</button>
+        </div>
+      </div>
+
+      <!-- إحصائيات الأسبوع -->
+      <div class="stats-grid" style="margin-bottom:16px">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد الأسبوع</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-week"></i></div></div><div class="stat-value" id="week-stat-total">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مكتملة</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-check-circle"></i></div></div><div class="stat-value" id="week-stat-done">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">في الانتظار</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-hourglass-half"></i></div></div><div class="stat-value" id="week-stat-pending">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">ملغية</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-times-circle"></i></div></div><div class="stat-value" id="week-stat-cancelled">—</div></div>
+      </div>
+
+      <!-- فلتر الأطباء -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px" id="week-doc-filters">
+        <button class="doc-filter-chip active" data-doc-id="all" onclick="filterWeekByDoc('all',this)">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block"></span> الكل
+        </button>
+      </div>
+
+      <!-- شبكة الأسبوع -->
+      <div class="card">
+        <div class="week-grid-wrap">
+          <div class="week-grid" id="week-grid">
+            <div class="week-loading" style="grid-column:1/-1">
+              <div class="week-spinner"></div> جاري تحميل المواعيد...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- تفاصيل اليوم المختار -->
+      <div class="card" id="week-day-detail" style="margin-top:14px;display:none">
+        <div class="card-header">
+          <span class="card-title" id="week-day-title">مواعيد اليوم</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge badge-blue" id="week-day-count">0</span>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modal-appt')"><i class="fa-solid fa-plus"></i> إضافة</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الوقت</th><th>المريض</th><th>الطبيب</th><th>النوع</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+            <tbody id="week-day-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ★ تذكير المرضى ★ ══ -->
+    <div class="page" id="page-reminders">
+      <div class="page-header">
+        <div>
+          <div class="page-header-title">
+            <i class="fa-solid fa-bell-ring" style="color:var(--primary);margin-left:8px"></i>
+            تذكير المرضى
+          </div>
+          <div class="page-header-sub">إرسال تذكيرات المواعيد عبر واتساب أو SMS</div>
+        </div>
+        <button class="btn btn-primary" onclick="sendAllReminders()">
+          <i class="fa-solid fa-paper-plane"></i> إرسال الكل الآن
+        </button>
+      </div>
+
+      <!-- إحصائيات -->
+      <div class="stats-grid" style="margin-bottom:16px">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد الغد</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-day"></i></div></div><div class="stat-value" id="rem-stat-tomorrow">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد خلال 2 ساعة</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-clock"></i></div></div><div class="stat-value" id="rem-stat-2h">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">تم إرسال تذكير</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-check-double"></i></div></div><div class="stat-value" id="rem-stat-sent">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">بدون هاتف</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-phone-slash"></i></div></div><div class="stat-value" id="rem-stat-noPhone">—</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start">
+
+        <!-- قائمة التذكيرات -->
+        <div>
+          <!-- فلتر -->
+          <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+            <button class="doc-filter-chip active" data-rem="tomorrow" onclick="filterReminders('tomorrow',this)">الغد</button>
+            <button class="doc-filter-chip" data-rem="2h" onclick="filterReminders('2h',this)">خلال ساعتين</button>
+            <button class="doc-filter-chip" data-rem="today" onclick="filterReminders('today',this)">اليوم كله</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" id="rem-list-title">مواعيد الغد</span>
+              <span class="badge badge-blue" id="rem-list-count">0</span>
+            </div>
+            <div id="rem-list">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+            <div style="padding:10px 16px;border-top:1px solid var(--border-light);display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="loadReminders()"><i class="fa-solid fa-refresh"></i> تحديث</button>
+              <button class="btn btn-success btn-sm" onclick="sendAllReminders()"><i class="fa-brands fa-whatsapp"></i> إرسال الكل</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- إعدادات التذكير -->
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-header"><span class="card-title"><i class="fa-solid fa-sliders" style="color:var(--primary);margin-left:6px"></i>إعدادات التذكير</span></div>
+            <div class="card-body">
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px">قناة الإرسال</div>
+              <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+                <button class="channel-btn whatsapp active" id="ch-whatsapp" onclick="toggleChannel('whatsapp',this)">
+                  <i class="fa-brands fa-whatsapp"></i> واتساب
+                </button>
+                <button class="channel-btn sms" id="ch-sms" onclick="toggleChannel('sms',this)">
+                  <i class="fa-solid fa-comment-sms"></i> SMS
+                </button>
+                <button class="channel-btn" id="ch-email" onclick="toggleChannel('email',this)">
+                  <i class="fa-regular fa-envelope"></i> إيميل
+                </button>
+              </div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px">موعد الإرسال</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+                <label style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <input type="checkbox" id="chk-24h" checked style="accent-color:var(--primary)"/>
+                    <span style="font-size:13px">قبل الموعد بـ 24 ساعة</span>
+                  </div>
+                  <span class="badge badge-success">مفعل</span>
+                </label>
+                <label style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <input type="checkbox" id="chk-2h" checked style="accent-color:var(--primary)"/>
+                    <span style="font-size:13px">قبل الموعد بـ 2 ساعة</span>
+                  </div>
+                  <span class="badge badge-success">مفعل</span>
+                </label>
+                <label style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <input type="checkbox" id="chk-follow" style="accent-color:var(--primary)"/>
+                    <span style="font-size:13px">تذكير متابعة بعد الزيارة</span>
+                  </div>
+                  <span class="badge badge-gray">معطل</span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">نص الرسالة الافتراضي</label>
+                <textarea class="form-control" id="rem-template" rows="5">مرحباً {اسم_المريض} 👋
+نذكركم بموعدكم في عيادة سليم
+📅 {التاريخ} — 🕐 {الوقت}
+👨‍⚕️ {اسم_الطبيب}
+للتأكيد أو الإلغاء اتصل بنا
+☎️ +20 2 1234 5678</textarea>
+              </div>
+              <button class="btn btn-primary" style="width:100%" onclick="saveReminderSettings()">
+                <i class="fa-solid fa-check"></i> حفظ الإعدادات
+              </button>
+            </div>
+          </div>
+
+          <!-- معاينة الرسالة -->
+          <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fa-brands fa-whatsapp" style="color:#25D366;margin-left:6px"></i>معاينة الرسالة</span></div>
+            <div class="card-body">
+              <div style="background:#E7F5E7;border-radius:10px;border-bottom-right-radius:2px;padding:12px 14px;font-size:13px;line-height:1.7;color:#1a1a1a;font-family:inherit" id="rem-preview">
+                مرحباً محمد علي 👋<br/>
+                نذكركم بموعدكم في عيادة سليم<br/>
+                📅 غداً — 🕐 09:00 ص<br/>
+                👨‍⚕️ د. سارة أحمد<br/>
+                للتأكيد أو الإلغاء اتصل بنا<br/>
+                ☎️ +20 2 1234 5678
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ PATIENTS ══ -->
     <div class="page" id="page-patients">
       <div class="page-header">
         <div><div class="page-header-title">المرضى</div><div class="page-header-sub" id="r-pts-count"></div></div>
@@ -117,7 +451,7 @@
       </div>
     </div>
 
-    <!-- POS -->
+    <!-- ══ POS ══ -->
     <div class="page" id="page-pos">
       <div class="page-header"><div class="page-header-title">فاتورة زيارة</div></div>
       <div style="display:grid;grid-template-columns:1fr 380px;gap:20px">
@@ -133,7 +467,7 @@
           </div>
           <div class="card">
             <div class="card-header"><span class="card-title">الخدمات</span><button class="btn btn-ghost btn-sm" onclick="addPosService()"><i class="fa-solid fa-plus"></i> إضافة خدمة</button></div>
-            <div class="card-body" id="pos-services-wrap">
+            <div class="card-body">
               <div id="pos-services"></div>
             </div>
           </div>
@@ -164,7 +498,7 @@
       </div>
     </div>
 
-    <!-- INVOICES -->
+    <!-- ══ INVOICES ══ -->
     <div class="page" id="page-invoices">
       <div class="page-header"><div class="page-header-title">الفواتير</div></div>
       <div class="card">
@@ -187,11 +521,11 @@
       </div>
     </div>
 
-  </div>
-</div>
-</div>
+  </div><!-- /page-content -->
+</div><!-- /main-wrap -->
+</div><!-- /app-layout -->
 
-<!-- MODALS -->
+<!-- ══ MODALS ══ -->
 <div class="modal-overlay" id="modal-appt">
   <div class="modal">
     <div class="modal-header"><span class="modal-title">موعد جديد</span><button class="modal-close" onclick="closeModal('modal-appt')"><i class="fa-solid fa-xmark"></i></button></div>
@@ -201,7 +535,10 @@
         <div class="form-group"><label class="form-label">الطبيب *</label><select class="form-control" id="na-doctor"></select></div>
         <div class="form-group"><label class="form-label">التاريخ والوقت *</label><input type="datetime-local" class="form-control" id="na-datetime"/></div>
         <div class="form-group"><label class="form-label">نوع الزيارة</label>
-          <select class="form-control" id="na-type"><option value="consultation">كشف</option><option value="follow_up">متابعة</option><option value="procedure">إجراء</option><option value="checkup">فحص دوري</option></select>
+          <select class="form-control" id="na-type">
+            <option value="consultation">كشف</option><option value="follow_up">متابعة</option>
+            <option value="procedure">إجراء</option><option value="checkup">فحص دوري</option>
+          </select>
         </div>
       </div>
       <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="na-notes" rows="2"></textarea></div>
@@ -241,6 +578,635 @@
 </div>
 
 <div class="toast-wrap" id="toast-wrap"></div>
-<script type="module" src="reception.js"></script>
+<script src="pwa-register.js"></script>
+<script type="module">
+import{createClient}from'https://esm.sh/@supabase/supabase-js@2'
+import{initDarkMode,toggleDarkMode,initGlobalSearch,openGlobalSearch,loadPatientsIndex}from'./shared/global-features.js'
+window.toggleDarkMode=toggleDarkMode
+window.openGlobalSearch=(s,o)=>openGlobalSearch(s,o)
+initDarkMode()
+const sb=createClient(
+  'https://kfbylfsqzbsqyqnjzjrw.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYnlsZnNxemJzcXlxbmp6anJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjE3MDQsImV4cCI6MjA5NDM5NzcwNH0.x_Tv06wcQAFRTX_nutecP13FzPM9mN8js6ITeVl9d4k'
+)
+let profile,orgId,allPts=[],allAppts=[],allInvs=[],services=[],posItems=[]
+
+// ── Auth ──
+const{data:{user}}=await sb.auth.getUser()
+if(!user){location.href='login.html'}
+const{data:p}=await sb.from('profiles').select('*').eq('id',user.id).single()
+if(!p||!p.is_active){await sb.auth.signOut();location.href='login.html'}
+if(!['reception','admin','accountant'].includes(p.role)){location.href=p.role==='doctor'?'doctor.html':'admin.html'}
+profile=p;orgId=p.organization_id
+const{data:org}=await sb.from('organizations').select('name').eq('id',orgId).single()
+p.organizations=org||{}
+document.querySelectorAll('[data-user-name]').forEach(e=>e.textContent=p.full_name)
+document.querySelectorAll('[data-user-role]').forEach(e=>e.textContent='موظف استقبال')
+document.querySelectorAll('[data-user-avatar]').forEach(e=>e.textContent=p.full_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase())
+document.querySelectorAll('[data-org-name]').forEach(e=>e.textContent=p.organizations?.name||'')
+const now=new Date()
+document.getElementById('topbar-date').textContent=now.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+
+// ── Helpers ──
+const typeLabel={consultation:'كشف',follow_up:'متابعة',procedure:'إجراء',checkup:'فحص'}
+const titles={today:'مواعيد اليوم',appointments:'كل المواعيد','week-view':'العرض الأسبوعي',reminders:'تذكير المرضى',patients:'المرضى',pos:'فاتورة زيارة',invoices:'الفواتير'}
+window.openModal=id=>document.getElementById(id)?.classList.add('open')
+window.closeModal=id=>document.getElementById(id)?.classList.remove('open')
+window.doSignOut=async()=>{await sb.auth.signOut();location.href='login.html'}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}))
+
+function toast(title,msg='',type='info'){
+  const c={success:{i:'fa-check-circle',bg:'#D1FAE5',cl:'#10B981'},error:{i:'fa-circle-xmark',bg:'#FEE2E2',cl:'#EF4444'},warning:{i:'fa-triangle-exclamation',bg:'#FEF3C7',cl:'#F59E0B'},info:{i:'fa-circle-info',bg:'#EEF2FF',cl:'#6366F1'}}[type]
+  const w=document.getElementById('toast-wrap'),t=document.createElement('div')
+  t.className='toast'
+  t.innerHTML=`<div class="toast-icon" style="background:${c.bg};color:${c.cl}"><i class="fa-solid ${c.i}"></i></div><div class="toast-body"><div class="toast-title">${title}</div>${msg?`<div class="toast-msg">${msg}</div>`:''}</div>`
+  w.appendChild(t);setTimeout(()=>t.remove(),4000)
+}
+function fdt(d){return d?new Date(d).toLocaleString('ar-EG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—'}
+function ft(d){return d?new Date(d).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}):'—'}
+function fmoney(n){return(n||0).toLocaleString('ar-EG')+' ج.م'}
+function badge(s){
+  const m={pending:'badge-warning',confirmed:'badge-info',completed:'badge-success',cancelled:'badge-danger',no_show:'badge-danger',paid:'badge-success',partial:'badge-warning',draft:'badge-gray',overdue:'badge-danger',active:'badge-success',inactive:'badge-gray',new:'badge-blue'}
+  const l={pending:'انتظار',confirmed:'مؤكد',completed:'مكتمل',cancelled:'ملغي',no_show:'لم يحضر',paid:'مدفوع',partial:'جزئي',draft:'مسودة',overdue:'متأخر',active:'نشط',inactive:'غير نشط',new:'جديد'}
+  return`<span class="badge ${m[s]||'badge-gray'}">${l[s]||s}</span>`
+}
+
+// ── Navigation ──
+window.nav=id=>{
+  document.querySelectorAll('.page').forEach(pg=>pg.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'))
+  document.getElementById('page-'+id)?.classList.add('active')
+  document.getElementById('nav-'+id)?.classList.add('active')
+  document.getElementById('topbar-title').textContent=titles[id]||''
+  const loaders={appointments:loadAllAppts,patients:loadPatients,pos:loadPos,invoices:loadInvoices,'week-view':loadWeekView,reminders:loadReminders}
+  loaders[id]?.()
+}
+
+// ── Today ──
+window.loadToday=async function(){
+  const today=new Date().toISOString().slice(0,10)
+  const{data}=await sb.from('appointments').select('*,patients(full_name,phone),profiles!appointments_doctor_id_fkey(full_name)').eq('organization_id',orgId).gte('scheduled_at',today+'T00:00:00').lte('scheduled_at',today+'T23:59:59').order('scheduled_at')
+  const list=data||[]
+  document.getElementById('r-stat-total').textContent=list.length
+  document.getElementById('r-stat-wait').textContent=list.filter(a=>a.status==='pending').length
+  document.getElementById('r-stat-done').textContent=list.filter(a=>a.status==='completed').length
+  document.getElementById('r-stat-cancel').textContent=list.filter(a=>a.status==='cancelled').length
+  const tb=document.getElementById('today-table')
+  if(!list.length){tb.innerHTML='<tr><td colspan="7" class="table-empty">لا توجد مواعيد اليوم</td></tr>';return}
+  tb.innerHTML=list.map((a,i)=>`<tr>
+    <td>${i+1}</td>
+    <td><div style="font-weight:600">${a.patients?.full_name||'—'}</div><div style="font-size:11px;color:var(--text-muted)">${a.patients?.phone||''}</div></td>
+    <td>${a.profiles?.full_name||'—'}</td>
+    <td>${ft(a.scheduled_at)}</td>
+    <td>${typeLabel[a.type]||a.type}</td>
+    <td>${badge(a.status)}</td>
+    <td style="display:flex;gap:4px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="updateStatus('${a.id}','confirmed')" title="تأكيد"><i class="fa-solid fa-check"></i></button>
+      <button class="btn btn-success btn-sm" onclick="goToPOS('${a.patient_id}','${a.id}')"><i class="fa-solid fa-file-invoice-dollar"></i></button>
+      <button class="btn btn-info btn-sm" onclick="sendWhatsApp('${a.patients?.phone||''}','${a.patients?.full_name||''}','${a.scheduled_at}')" title="واتساب" style="background:#25D366;border:none;color:#fff"><i class="fa-brands fa-whatsapp"></i></button>
+      <button class="btn btn-danger btn-sm" onclick="updateStatus('${a.id}','cancelled')" title="إلغاء"><i class="fa-solid fa-times"></i></button>
+    </td>
+  </tr>`).join('')
+}
+
+window.updateStatus=async(id,status)=>{
+  await sb.from('appointments').update({status}).eq('id',id)
+  toast('تم التحديث','','success');loadToday()
+  // تحديث الأسبوعي لو مفتوح
+  if(document.getElementById('page-week-view')?.classList.contains('active'))loadWeekView()
+}
+
+// ── All Appointments ──
+async function loadAllAppts(){
+  const{data}=await sb.from('appointments').select('*,patients(full_name),profiles!appointments_doctor_id_fkey(full_name)').eq('organization_id',orgId).order('scheduled_at',{ascending:false})
+  allAppts=data||[]
+  renderAllAppts(allAppts)
+}
+function renderAllAppts(data){
+  const tb=document.getElementById('all-appts-table')
+  tb.innerHTML=data.map(a=>`<tr>
+    <td>${a.patients?.full_name||'—'}</td>
+    <td>${a.profiles?.full_name||'—'}</td>
+    <td>${fdt(a.scheduled_at)}</td>
+    <td>${badge(a.status)}</td>
+    <td><button class="btn btn-ghost btn-sm btn-icon" onclick="updateStatus('${a.id}','completed')"><i class="fa-solid fa-check"></i></button></td>
+  </tr>`).join('')||'<tr><td colspan="5" class="table-empty">لا توجد مواعيد</td></tr>'
+}
+window.filterAllAppts=()=>{
+  const s=document.getElementById('all-appt-search').value.toLowerCase()
+  const st=document.getElementById('all-appt-status').value
+  const dt=document.getElementById('all-appt-date').value
+  renderAllAppts(allAppts.filter(a=>(!s||(a.patients?.full_name||'').toLowerCase().includes(s))&&(!st||a.status===st)&&(!dt||a.scheduled_at?.startsWith(dt))))
+}
+
+// ══════════════════════════════════════════════════════
+// ★ العرض الأسبوعي — متصل بـ Supabase ★
+// ══════════════════════════════════════════════════════
+
+const WEEK_DAYS=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت']
+const HOURS=['08:00','09:00','10:00','11:00','12:00','01:00م','02:00م','03:00م','04:00م','05:00م']
+const HOUR_START=8
+const DOC_COLORS=[
+  {color:'#3B82F6',bg:'#DBEAFE'},{color:'#10B981',bg:'#D1FAE5'},
+  {color:'#8B5CF6',bg:'#EDE9FE'},{color:'#F59E0B',bg:'#FEF3C7'},
+  {color:'#EF4444',bg:'#FEE2E2'},{color:'#06B6D4',bg:'#CFFAFE'},
+  {color:'#EC4899',bg:'#FCE7F3'},{color:'#64748B',bg:'#F1F5F9'},
+]
+
+let weekCurrent=new Date(), weekAppts=[], weekDoctors=[], weekActiveDoc='all', weekSelDay=null
+
+function getWeekStart(d){const date=new Date(d);date.setDate(date.getDate()-date.getDay());date.setHours(0,0,0,0);return date}
+function getWeekEnd(d){const s=getWeekStart(d);const e=new Date(s);e.setDate(e.getDate()+6);e.setHours(23,59,59,999);return e}
+
+async function loadWeekView(){
+  document.getElementById('week-grid').innerHTML=`<div class="week-loading" style="grid-column:1/-1"><div class="week-spinner"></div> جاري تحميل...</div>`
+  const{data,error}=await sb.from('appointments')
+    .select('*,patients(full_name,phone),profiles!appointments_doctor_id_fkey(id,full_name)')
+    .eq('organization_id',orgId)
+    .gte('scheduled_at',getWeekStart(weekCurrent).toISOString())
+    .lte('scheduled_at',getWeekEnd(weekCurrent).toISOString())
+    .order('scheduled_at')
+  if(error){toast('خطأ في تحميل الأسبوع',error.message,'error');return}
+  weekAppts=data||[]
+  // استخراج الأطباء
+  const docMap={}
+  weekAppts.forEach(a=>{if(a.profiles?.id&&!docMap[a.profiles.id])docMap[a.profiles.id]={id:a.profiles.id,name:a.profiles.full_name}})
+  weekDoctors=Object.values(docMap)
+  buildDocFilters()
+  updateWeekStats()
+  renderWeekGrid()
+  updateWeekLabel()
+}
+
+function updateWeekLabel(){
+  const s=getWeekStart(weekCurrent),e=getWeekEnd(weekCurrent)
+  const mn=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+  const el=document.getElementById('week-range-label')
+  if(el)el.textContent=`${s.getDate()} — ${e.getDate()} ${mn[e.getMonth()]} ${e.getFullYear()}`
+}
+
+function updateWeekStats(){
+  const f=getFilteredWeekAppts()
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  set('week-stat-total',f.length)
+  set('week-stat-done',f.filter(a=>a.status==='completed').length)
+  set('week-stat-pending',f.filter(a=>['pending','confirmed'].includes(a.status)).length)
+  set('week-stat-cancelled',f.filter(a=>['cancelled','no_show'].includes(a.status)).length)
+}
+
+function getFilteredWeekAppts(){
+  return weekActiveDoc==='all'?weekAppts:weekAppts.filter(a=>a.profiles?.id===weekActiveDoc)
+}
+
+function getDocColor(docId){
+  const idx=weekDoctors.findIndex(d=>d.id===docId)
+  return DOC_COLORS[idx>=0?idx%DOC_COLORS.length:0]
+}
+
+function buildDocFilters(){
+  const wrap=document.getElementById('week-doc-filters')
+  if(!wrap)return
+  wrap.innerHTML=`<button class="doc-filter-chip active" data-doc-id="all" onclick="filterWeekByDoc('all',this)"><span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block"></span> الكل</button>`
+  weekDoctors.forEach((doc,i)=>{
+    const col=DOC_COLORS[i%DOC_COLORS.length]
+    const b=document.createElement('button')
+    b.className='doc-filter-chip'
+    b.dataset.docId=doc.id
+    b.onclick=function(){filterWeekByDoc(doc.id,this)}
+    b.innerHTML=`<span style="width:8px;height:8px;border-radius:50%;background:${col.color};display:inline-block"></span> ${doc.name}`
+    wrap.appendChild(b)
+  })
+}
+
+window.filterWeekByDoc=function(docId,el){
+  weekActiveDoc=docId
+  document.querySelectorAll('#week-doc-filters .doc-filter-chip').forEach(b=>b.classList.remove('active'))
+  el.classList.add('active')
+  updateWeekStats()
+  renderWeekGrid()
+  if(weekSelDay!==null)renderDayDetail(weekSelDay)
+}
+
+function renderWeekGrid(){
+  const grid=document.getElementById('week-grid')
+  if(!grid)return
+  const today=new Date()
+  const ws=getWeekStart(weekCurrent)
+  const filtered=getFilteredWeekAppts()
+  let html=''
+  // رأس
+  html+=`<div class="week-header-cell" style="background:var(--bg);cursor:default"></div>`
+  for(let d=0;d<7;d++){
+    const date=new Date(ws);date.setDate(ws.getDate()+d)
+    const isToday=date.toDateString()===today.toDateString()
+    const cnt=filtered.filter(a=>new Date(a.scheduled_at).toDateString()===date.toDateString()).length
+    html+=`<div class="week-header-cell${isToday?' today-col':''}" onclick="selectDay(${d})">
+      ${WEEK_DAYS[d]}<br/>
+      <span style="font-size:18px;font-weight:700;color:${isToday?'var(--primary)':'var(--text)'};">${date.getDate()}</span>
+      ${cnt>0?`<br/><span style="font-size:10px;">${cnt} موعد</span>`:''}
+    </div>`
+  }
+  // صفوف الساعات
+  for(let h=0;h<HOURS.length;h++){
+    html+=`<div class="week-time-col"><div class="week-hour">${HOURS[h]}</div></div>`
+    for(let d=0;d<7;d++){
+      const date=new Date(ws);date.setDate(ws.getDate()+d)
+      const isToday=date.toDateString()===today.toDateString()
+      const slotH=HOUR_START+h
+      const slotAppts=filtered.filter(a=>{
+        const ad=new Date(a.scheduled_at)
+        return ad.toDateString()===date.toDateString()&&ad.getHours()===slotH
+      })
+      html+=`<div class="week-day-col"><div class="week-slot" style="${isToday?'background:rgba(27,108,168,.03)':''}" onclick="selectDay(${d})">`
+      slotAppts.forEach(a=>{
+        const col=getDocColor(a.profiles?.id||'')
+        const dur=Math.max(1,Math.round((a.duration_minutes||30)/60*64))
+        html+=`<div class="week-event" style="background:${col.bg};color:${col.color};height:${dur-4}px;top:2px" onclick="event.stopPropagation();showApptQuick('${a.id}')" title="${a.patients?.full_name||'—'} — ${ft(a.scheduled_at)}">
+          <div style="font-weight:600;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.patients?.full_name||'—'}</div>
+          <div style="font-size:10px;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.profiles?.full_name||'—'}</div>
+        </div>`
+      })
+      if(isToday&&slotH===today.getHours()){html+=`<div class="week-now-line" style="top:${Math.round(today.getMinutes()/60*64)}px"></div>`}
+      html+=`</div></div>`
+    }
+  }
+  grid.innerHTML=html
+}
+
+window.selectDay=function(dayIdx){
+  weekSelDay=dayIdx
+  renderDayDetail(dayIdx)
+}
+
+function renderDayDetail(dayIdx){
+  const ws=getWeekStart(weekCurrent)
+  const date=new Date(ws);date.setDate(ws.getDate()+dayIdx)
+  const mn=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+  const label=`${WEEK_DAYS[dayIdx]} ${date.getDate()} ${mn[date.getMonth()]}`
+  const dayAppts=getFilteredWeekAppts().filter(a=>new Date(a.scheduled_at).toDateString()===date.toDateString()).sort((a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at))
+  const detail=document.getElementById('week-day-detail')
+  detail.style.display='block'
+  document.getElementById('week-day-title').textContent=`مواعيد ${label}`
+  document.getElementById('week-day-count').textContent=dayAppts.length
+  const tbody=document.getElementById('week-day-body')
+  if(!dayAppts.length){tbody.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد مواعيد</td></tr>';return}
+  tbody.innerHTML=dayAppts.map(a=>`<tr>
+    <td><strong>${ft(a.scheduled_at)}</strong></td>
+    <td>${a.patients?.full_name||'—'}</td>
+    <td>${a.profiles?.full_name||'—'}</td>
+    <td>${typeLabel[a.type]||a.type}</td>
+    <td>${badge(a.status)}</td>
+    <td style="display:flex;gap:4px">
+      <button class="btn btn-success btn-sm" onclick="goToPOS('${a.patient_id}','${a.id}')"><i class="fa-solid fa-file-invoice-dollar"></i></button>
+      <button class="btn btn-ghost btn-sm" onclick="updateStatus('${a.id}','completed')"><i class="fa-solid fa-check"></i></button>
+      <button class="btn btn-danger btn-sm btn-icon" onclick="updateStatus('${a.id}','cancelled')"><i class="fa-solid fa-times"></i></button>
+    </td>
+  </tr>`).join('')
+}
+
+window.showApptQuick=function(id){
+  const a=weekAppts.find(x=>x.id===id);if(!a)return
+  toast(a.patients?.full_name||'موعد',`${a.profiles?.full_name||'—'} · ${ft(a.scheduled_at)} · ${typeLabel[a.type]||a.type}`,'info')
+}
+
+window.changeWeek=function(dir){weekCurrent.setDate(weekCurrent.getDate()+dir*7);weekSelDay=null;document.getElementById('week-day-detail').style.display='none';loadWeekView()}
+window.goToToday=function(){weekCurrent=new Date();weekSelDay=null;document.getElementById('week-day-detail').style.display='none';loadWeekView()}
+
+// Realtime للأسبوعي
+sb.channel('rec_week').on('postgres_changes',{event:'*',schema:'public',table:'appointments',filter:`organization_id=eq.${orgId}`},()=>{
+  if(document.getElementById('page-week-view')?.classList.contains('active'))loadWeekView()
+}).subscribe()
+
+// ══════════════════════════════════════════════════════
+// ★ تذكير المرضى — متصل بـ Supabase ★
+// ══════════════════════════════════════════════════════
+
+let remAllAppts=[], remFilter='tomorrow', remSentIds=new Set()
+let activeChannels={whatsapp:true,sms:false,email:false}
+
+async function loadReminders(){
+  // جلب مواعيد اليوم + الغد من Supabase
+  const today=new Date();today.setHours(0,0,0,0)
+  const dayAfter=new Date(today);dayAfter.setDate(dayAfter.getDate()+2);dayAfter.setHours(23,59,59)
+  const{data,error}=await sb.from('appointments')
+    .select('*,patients(full_name,phone),profiles!appointments_doctor_id_fkey(full_name)')
+    .eq('organization_id',orgId)
+    .gte('scheduled_at',today.toISOString())
+    .lte('scheduled_at',dayAfter.toISOString())
+    .in('status',['pending','confirmed'])
+    .order('scheduled_at')
+  if(error){toast('خطأ',error.message,'error');return}
+  remAllAppts=data||[]
+  // إحصائيات
+  const todayStr=new Date().toISOString().slice(0,10)
+  const tomorrowStr=new Date(Date.now()+86400000).toISOString().slice(0,10)
+  const tomorrowAppts=remAllAppts.filter(a=>a.scheduled_at?.startsWith(tomorrowStr))
+  const in2h=remAllAppts.filter(a=>{
+    const diff=(new Date(a.scheduled_at)-new Date())/3600000
+    return diff>0&&diff<=2
+  })
+  const noPhone=remAllAppts.filter(a=>!a.patients?.phone)
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  set('rem-stat-tomorrow',tomorrowAppts.length)
+  set('rem-stat-2h',in2h.length)
+  set('rem-stat-sent',remSentIds.size)
+  set('rem-stat-noPhone',noPhone.length)
+  renderRemindersList()
+}
+
+function getReminderAppts(){
+  const tomorrowStr=new Date(Date.now()+86400000).toISOString().slice(0,10)
+  const todayStr=new Date().toISOString().slice(0,10)
+  if(remFilter==='tomorrow')return remAllAppts.filter(a=>a.scheduled_at?.startsWith(tomorrowStr))
+  if(remFilter==='2h')return remAllAppts.filter(a=>{const diff=(new Date(a.scheduled_at)-new Date())/3600000;return diff>0&&diff<=2})
+  return remAllAppts.filter(a=>a.scheduled_at?.startsWith(todayStr))
+}
+
+function renderRemindersList(){
+  const filtered=getReminderAppts()
+  const el=document.getElementById('rem-list')
+  const cnt=document.getElementById('rem-list-count')
+  if(cnt)cnt.textContent=filtered.length
+  if(!filtered.length){el.innerHTML='<div class="table-empty">لا توجد مواعيد في هذه الفترة</div>';return}
+  el.innerHTML=filtered.map(a=>{
+    const hasPhone=!!a.patients?.phone
+    const sent=remSentIds.has(a.id)
+    const initials=(a.patients?.full_name||'XX').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
+    return`<div class="reminder-row">
+      <div class="avatar avatar-blue" style="font-size:11px;width:32px;height:32px;border-radius:8px;flex-shrink:0">${initials}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500">${a.patients?.full_name||'—'}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${ft(a.scheduled_at)} · ${a.profiles?.full_name||'—'} · ${typeLabel[a.type]||a.type}</div>
+        ${hasPhone?`<div style="font-size:11px;color:var(--text-muted)">${a.patients.phone}</div>`:'<div style="font-size:11px;color:var(--danger)"><i class="fa-solid fa-phone-slash"></i> لا يوجد هاتف</div>'}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${sent?`<span class="reminder-sent"><i class="fa-solid fa-check"></i> أُرسل</span>`:''}
+        ${hasPhone&&!sent?`<button class="btn btn-sm" style="background:#25D366;color:#fff;border:none" onclick="sendOneReminder('${a.id}','${a.patients?.phone||''}','${(a.patients?.full_name||'').replace(/'/g,"\\'")}','${a.scheduled_at}','${(a.profiles?.full_name||'').replace(/'/g,"\\'")}')"><i class="fa-brands fa-whatsapp"></i> إرسال</button>`:''}
+        ${!hasPhone?`<button class="btn btn-ghost btn-sm" disabled style="opacity:.4" title="لا يوجد هاتف"><i class="fa-brands fa-whatsapp"></i></button>`:''}
+      </div>
+    </div>`
+  }).join('')
+}
+
+window.filterReminders=function(f,el){
+  remFilter=f
+  document.querySelectorAll('[data-rem]').forEach(b=>b.classList.remove('active'))
+  el.classList.add('active')
+  const labels={tomorrow:'مواعيد الغد','2h':'خلال ساعتين',today:'اليوم كله'}
+  const t=document.getElementById('rem-list-title');if(t)t.textContent=labels[f]||''
+  renderRemindersList()
+}
+
+window.sendOneReminder=function(id,phone,name,time,doctor){
+  if(!phone)return
+  const template=document.getElementById('rem-template')?.value||''
+  const dt=new Date(time)
+  const dateStr=dt.toLocaleDateString('ar-EG',{weekday:'long',month:'long',day:'numeric'})
+  const timeStr=dt.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})
+  const msg=template
+    .replace('{اسم_المريض}',name)
+    .replace('{التاريخ}',dateStr)
+    .replace('{الوقت}',timeStr)
+    .replace('{اسم_الطبيب}',doctor)
+  const num=phone.replace(/[^0-9]/g,'')
+  window.open(`https://wa.me/2${num}?text=${encodeURIComponent(msg)}`,'_blank')
+  remSentIds.add(id)
+  renderRemindersList()
+  // تحديث الإحصائيات
+  const s=document.getElementById('rem-stat-sent');if(s)s.textContent=remSentIds.size
+  toast('تم الإرسال',`تذكير ${name}`,'success')
+}
+
+window.sendAllReminders=async function(){
+  const appts=getReminderAppts().filter(a=>a.patients?.phone&&!remSentIds.has(a.id))
+  if(!appts.length){toast('لا توجد مواعيد للإرسال','جميعها تم إرسالها أو لا يوجد هاتف','warning');return}
+  const template=document.getElementById('rem-template')?.value||''
+  let sent=0
+  for(const a of appts){
+    const dt=new Date(a.scheduled_at)
+    const dateStr=dt.toLocaleDateString('ar-EG',{weekday:'long',month:'long',day:'numeric'})
+    const timeStr=dt.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})
+    const msg=template
+      .replace('{اسم_المريض}',a.patients?.full_name||'')
+      .replace('{التاريخ}',dateStr)
+      .replace('{الوقت}',timeStr)
+      .replace('{اسم_الطبيب}',a.profiles?.full_name||'')
+    const num=(a.patients.phone||'').replace(/[^0-9]/g,'')
+    if(num){window.open(`https://wa.me/2${num}?text=${encodeURIComponent(msg)}`,'_blank');remSentIds.add(a.id);sent++}
+    // تأخير بسيط بين الرسائل
+    await new Promise(r=>setTimeout(r,600))
+  }
+  renderRemindersList()
+  const s=document.getElementById('rem-stat-sent');if(s)s.textContent=remSentIds.size
+  toast(`تم إرسال ${sent} تذكير ✅`,'','success')
+}
+
+window.toggleChannel=function(ch,el){
+  activeChannels[ch]=!activeChannels[ch]
+  el.classList.toggle('active',activeChannels[ch])
+  if(ch==='whatsapp')el.classList.toggle('whatsapp',activeChannels[ch])
+  if(ch==='sms')el.classList.toggle('sms',activeChannels[ch])
+}
+
+window.saveReminderSettings=function(){
+  toast('تم حفظ الإعدادات ✅','','success')
+  // تحديث المعاينة
+  const tmpl=document.getElementById('rem-template')?.value||''
+  const preview=document.getElementById('rem-preview')
+  if(preview){
+    const sample=tmpl
+      .replace('{اسم_المريض}','محمد علي')
+      .replace('{التاريخ}','غداً')
+      .replace('{الوقت}','09:00 ص')
+      .replace('{اسم_الطبيب}','د. سارة أحمد')
+    preview.innerHTML=sample.replace(/\n/g,'<br/>')
+  }
+}
+
+// تحديث المعاينة عند كتابة القالب
+document.getElementById('rem-template')?.addEventListener('input',function(){
+  const preview=document.getElementById('rem-preview')
+  if(preview){
+    const sample=this.value.replace('{اسم_المريض}','محمد علي').replace('{التاريخ}','غداً').replace('{الوقت}','09:00 ص').replace('{اسم_الطبيب}','د. سارة أحمد')
+    preview.innerHTML=sample.replace(/\n/g,'<br/>')
+  }
+})
+
+// ── Patients ──
+async function loadPatients(){
+  const{data}=await sb.from('patients').select('*').eq('organization_id',orgId).order('created_at',{ascending:false})
+  allPts=data||[]
+  document.getElementById('r-pts-count').textContent=`${allPts.length} مريض`
+  renderPts(allPts)
+  const{data:docs}=await sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
+  document.getElementById('np-doctor').innerHTML='<option value="">— بلا طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
+}
+function renderPts(data){
+  const tb=document.getElementById('r-pts-table')
+  tb.innerHTML=data.map(p=>`<tr>
+    <td><code>${p.mrn}</code></td><td>${p.full_name}</td>
+    <td>${p.phone||'—'}</td><td>${p.gender==='male'?'ذكر':'أنثى'}</td>
+    <td>${badge(p.status)}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="goToPOS('${p.id}','')"><i class="fa-solid fa-file-invoice-dollar"></i> فاتورة</button></td>
+  </tr>`).join('')||'<tr><td colspan="6" class="table-empty">لا يوجد مرضى</td></tr>'
+}
+window.filterRPts=()=>{
+  const s=document.getElementById('r-pts-search').value.toLowerCase()
+  renderPts(allPts.filter(p=>(p.full_name||'').toLowerCase().includes(s)||(p.mrn||'').includes(s)))
+}
+window.saveNewPatient=async()=>{
+  const name=document.getElementById('np-name').value.trim()
+  if(!name){toast('الاسم مطلوب','','warning');return}
+  const{data:last}=await sb.from('patients').select('mrn').eq('organization_id',orgId).order('created_at',{ascending:false}).limit(1)
+  const n=(last?.[0]?.mrn?.split('-').pop()||999)
+  const mrn=`MRN-${new Date().getFullYear()}-${String(+n+1).padStart(4,'0')}`
+  const{error}=await sb.from('patients').insert({full_name:name,gender:document.getElementById('np-gender').value,phone:document.getElementById('np-phone').value,date_of_birth:document.getElementById('np-dob').value||null,assigned_doctor_id:document.getElementById('np-doctor').value||null,insurance_company:document.getElementById('np-insurance').value,organization_id:orgId,mrn,status:'new'})
+  if(error){toast('خطأ',error.message,'error');return}
+  toast('تمت إضافة المريض','','success');closeModal('modal-patient');loadPatients()
+}
+
+// ── New Appointment ──
+async function loadApptSelects(){
+  const[{data:pts},{data:docs}]=await Promise.all([
+    sb.from('patients').select('id,full_name').eq('organization_id',orgId).order('full_name'),
+    sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
+  ])
+  document.getElementById('na-patient').innerHTML='<option value="">— اختر مريض —</option>'+(pts||[]).map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('')
+  document.getElementById('na-doctor').innerHTML='<option value="">— اختر طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
+}
+window.saveNewAppt=async()=>{
+  const pid=document.getElementById('na-patient').value,did=document.getElementById('na-doctor').value,dt=document.getElementById('na-datetime').value
+  if(!pid||!did||!dt){toast('تحقق من البيانات','','warning');return}
+  const{error}=await sb.from('appointments').insert({patient_id:pid,doctor_id:did,scheduled_at:dt,type:document.getElementById('na-type').value,notes:document.getElementById('na-notes').value,status:'pending',organization_id:orgId})
+  if(error){toast('خطأ',error.message,'error');return}
+  toast('تمت إضافة الموعد','','success');closeModal('modal-appt');loadToday()
+  if(document.getElementById('page-week-view')?.classList.contains('active'))loadWeekView()
+}
+
+// ── POS ──
+async function loadPos(){
+  const[{data:pts},{data:svcs}]=await Promise.all([
+    sb.from('patients').select('id,full_name').eq('organization_id',orgId).order('full_name'),
+    sb.from('services').select('*').eq('organization_id',orgId).eq('is_active',true)
+  ])
+  services=svcs||[]
+  document.getElementById('pos-patient').innerHTML='<option value="">— اختر مريض —</option>'+(pts||[]).map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('')
+  posItems=[];document.getElementById('pos-services').innerHTML='';posCalc()
+}
+window.goToPOS=async(patientId,apptId)=>{
+  nav('pos');await loadPos()
+  if(patientId)document.getElementById('pos-patient').value=patientId
+}
+window.addPosService=()=>{
+  const wrap=document.getElementById('pos-services')
+  const idx=posItems.length;posItems.push({svc:'',qty:1,price:0})
+  const div=document.createElement('div')
+  div.id='pos-item-'+idx
+  div.style='display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center'
+  div.innerHTML=`<select class="form-control pos-svc" onchange="onSvcChange(${idx},this)"><option value="">— اختر خدمة —</option>${services.map(s=>`<option value="${s.id}" data-price="${s.price}">${s.name} — ${s.price} ج.م</option>`).join('')}</select><input type="number" class="form-control pos-qty" value="1" min="1" oninput="onItemChange(${idx},this)" style="width:80px"/><input type="number" class="form-control pos-price" value="0" oninput="onItemChange(${idx},this)"/><button class="btn btn-danger btn-icon" onclick="removePosItem(${idx})"><i class="fa-solid fa-times"></i></button>`
+  wrap.appendChild(div)
+}
+window.onSvcChange=(idx,sel)=>{
+  const opt=sel.options[sel.selectedIndex];const price=+opt.dataset.price||0
+  const row=document.getElementById('pos-item-'+idx)
+  row.querySelector('.pos-price').value=price
+  posItems[idx]={svc:sel.value,qty:+row.querySelector('.pos-qty').value,price};posCalc()
+}
+window.onItemChange=(idx,el)=>{
+  const row=document.getElementById('pos-item-'+idx)
+  posItems[idx]={...posItems[idx],qty:+row.querySelector('.pos-qty').value,price:+row.querySelector('.pos-price').value};posCalc()
+}
+window.removePosItem=idx=>{document.getElementById('pos-item-'+idx)?.remove();posItems[idx]={removed:true};posCalc()}
+window.posCalc=()=>{
+  const sub=posItems.filter(i=>!i?.removed).reduce((s,i)=>s+(i.qty||0)*(i.price||0),0)
+  const disc=+document.getElementById('pos-discount')?.value||0
+  const dtype=document.getElementById('pos-disc-type')?.value
+  const discAmt=dtype==='percentage'?sub*disc/100:disc
+  const total=Math.max(0,sub-discAmt)
+  document.getElementById('pos-subtotal').textContent=fmoney(sub)
+  document.getElementById('pos-total').textContent=fmoney(total)
+}
+window.createInvoice=async()=>{
+  const pid=document.getElementById('pos-patient').value
+  if(!pid){toast('اختر المريض','','warning');return}
+  const items=posItems.filter(i=>!i?.removed&&i.svc)
+  if(!items.length){toast('أضف خدمة واحدة على الأقل','','warning');return}
+  const sub=items.reduce((s,i)=>s+i.qty*i.price,0)
+  const disc=+document.getElementById('pos-discount').value||0
+  const dtype=document.getElementById('pos-disc-type').value
+  const discAmt=dtype==='percentage'?sub*disc/100:disc
+  const total=Math.max(0,sub-discAmt)
+  const{data:last}=await sb.from('invoices').select('invoice_number').eq('organization_id',orgId).order('created_at',{ascending:false}).limit(1)
+  const n=(last?.[0]?.invoice_number?.split('-').pop()||999)
+  const inv_num=`INV-${new Date().getFullYear()}-${String(+n+1).padStart(4,'0')}`
+  const{data:inv,error}=await sb.from('invoices').insert({organization_id:orgId,patient_id:pid,invoice_number:inv_num,subtotal:sub,discount:disc,discount_type:dtype,total,paid_amount:total,status:'paid',payment_method:document.getElementById('pos-method').value,notes:document.getElementById('pos-notes').value,created_by:user.id}).select().single()
+  if(error){toast('خطأ',error.message,'error');return}
+  const rows=items.map(i=>({invoice_id:inv.id,service_id:i.svc,description:services.find(s=>s.id===i.svc)?.name||'خدمة',quantity:i.qty,unit_price:i.price}))
+  await sb.from('invoice_items').insert(rows)
+  await sb.from('payments').insert({organization_id:orgId,invoice_id:inv.id,amount:total,method:document.getElementById('pos-method').value,created_by:user.id})
+  toast('تمت إنشاء الفاتورة',`رقم: ${inv_num}`,'success')
+  posItems=[];document.getElementById('pos-services').innerHTML='';posCalc()
+}
+
+// ── Invoices ──
+async function loadInvoices(){
+  const{data}=await sb.from('invoices').select('*,patients(full_name)').eq('organization_id',orgId).order('created_at',{ascending:false})
+  allInvs=data||[]
+  renderInvs(allInvs)
+}
+function renderInvs(data){
+  const tb=document.getElementById('r-inv-table')
+  tb.innerHTML=data.map(i=>`<tr>
+    <td><code>${i.invoice_number}</code></td><td>${i.patients?.full_name||'—'}</td>
+    <td>${fmoney(i.total)}</td><td>${fmoney(i.paid_amount)}</td>
+    <td style="color:${i.remaining>0?'var(--danger)':'var(--success)'}">${fmoney(i.remaining)}</td>
+    <td>${badge(i.status)}</td>
+    <td>${i.remaining>0?`<button class="btn btn-success btn-sm" onclick="openPayModal('${i.id}',${i.remaining})"><i class="fa-solid fa-money-bill"></i> دفع</button>`:''}</td>
+  </tr>`).join('')||'<tr><td colspan="7" class="table-empty">لا توجد فواتير</td></tr>'
+}
+window.filterRInv=()=>{
+  const s=document.getElementById('r-inv-search').value.toLowerCase()
+  const st=document.getElementById('r-inv-status').value
+  renderInvs(allInvs.filter(i=>(!s||(i.invoice_number||'').toLowerCase().includes(s))&&(!st||i.status===st)))
+}
+window.openPayModal=(id,remaining)=>{
+  document.getElementById('pay-inv-id').value=id
+  document.getElementById('pay-amount').value=remaining
+  openModal('modal-payment')
+}
+window.savePayment=async()=>{
+  const id=document.getElementById('pay-inv-id').value
+  const amt=+document.getElementById('pay-amount').value
+  const method=document.getElementById('pay-method').value
+  const{error}=await sb.from('payments').insert({organization_id:orgId,invoice_id:id,amount:amt,method,reference:document.getElementById('pay-ref').value,created_by:user.id})
+  if(error){toast('خطأ',error.message,'error');return}
+  const inv=allInvs.find(i=>i.id===id)
+  const newPaid=(inv.paid_amount||0)+amt
+  const newStatus=newPaid>=inv.total?'paid':'partial'
+  await sb.from('invoices').update({paid_amount:newPaid,status:newStatus}).eq('id',id)
+  toast('تم تسجيل الدفعة','','success');closeModal('modal-payment');loadInvoices()
+}
+
+// ── WhatsApp تذكير سريع ──
+window.sendWhatsApp=(phone,name,time)=>{
+  const template=document.getElementById('rem-template')?.value||'مرحباً {اسم_المريض} 👋\nموعدكم: {التاريخ} — {الوقت}'
+  const dt=new Date(time)
+  const msg=encodeURIComponent(template
+    .replace('{اسم_المريض}',name)
+    .replace('{التاريخ}',dt.toLocaleDateString('ar-EG',{weekday:'long',month:'long',day:'numeric'}))
+    .replace('{الوقت}',dt.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}))
+    .replace('{اسم_الطبيب}',''))
+  const num=(phone||'').replace(/[^0-9]/g,'')
+  if(!num){toast('لا يوجد رقم هاتف','','warning');return}
+  window.open(`https://wa.me/2${num}?text=${msg}`,'_blank')
+}
+
+// ── Init ──
+await loadApptSelects()
+await loadToday()
+// ★ تهيئة البحث العام
+initGlobalSearch(sb, orgId, window.nav, window.openModal)
+await loadPatientsIndex(sb, orgId, window.nav)
+</script>
 </body>
 </html>

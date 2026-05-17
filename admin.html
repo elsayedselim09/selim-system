@@ -13,9 +13,13 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="shared/styles.css"/>
+<link rel="stylesheet" href="shared/styles-extra.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <style>
+/* ══ LAB ══ */
+.lab-status-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;color:var(--text-muted);background:var(--card)}
+.lab-status-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 /* ══ WEEK VIEW ══ */
 .week-grid-wrap{overflow-x:auto}
 .week-grid{
@@ -144,6 +148,10 @@
     <button class="nav-item" onclick="nav('employees')" id="nav-employees">
       <i class="fa-solid fa-id-badge"></i> الموظفون
     </button>
+    <!-- ★ المختبر ★ -->
+    <button class="nav-item" onclick="nav('lab')" id="nav-lab">
+      <i class="fa-solid fa-flask"></i> المختبر
+    </button>
 
     <div class="nav-section-title">المالية</div>
     <button class="nav-item" onclick="nav('invoices')" id="nav-invoices">
@@ -207,6 +215,14 @@
       <div class="topbar-subtitle" id="topbar-date"></div>
     </div>
     <div class="topbar-actions">
+      <button class="topbar-search-btn" onclick="openGlobalSearch(sb,orgId)" title="بحث (Ctrl+K)">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>بحث...</span>
+        <span class="kbd">Ctrl+K</span>
+      </button>
+      <button class="dark-toggle" id="dark-toggle-btn" onclick="toggleDarkMode()" title="الوضع الليلي">
+        <i class="fa-regular fa-moon" id="dark-toggle-icon"></i>
+      </button>
       <button class="topbar-btn" onclick="nav('appointments')" title="مواعيد اليوم">
         <i class="fa-regular fa-calendar"></i>
       </button>
@@ -394,6 +410,58 @@
           <table>
             <thead><tr><th>الموظف</th><th>الدور</th><th>الهاتف</th><th>الفرع</th><th>الحالة</th><th>إجراءات</th></tr></thead>
             <tbody id="employees-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ★ المختبر ★ ══ -->
+    <div class="page" id="page-lab">
+      <div class="page-header">
+        <div>
+          <div class="page-header-title"><i class="fa-solid fa-flask" style="color:var(--primary);margin-left:8px"></i> المختبر</div>
+          <div class="page-header-sub">إدارة جميع طلبات التحاليل ونتائجها</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadLab()"><i class="fa-solid fa-refresh"></i> تحديث</button>
+      </div>
+
+      <!-- إحصائيات -->
+      <div class="stats-grid" style="margin-bottom:16px">
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي الطلبات</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-flask"></i></div></div><div class="stat-value" id="adm-lab-total">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">قيد التحليل</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-spinner"></i></div></div><div class="stat-value" id="adm-lab-processing">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">تنتظر المراجعة</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-circle-exclamation"></i></div></div><div class="stat-value" id="adm-lab-review">—</div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-label">مكتملة</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-check-circle"></i></div></div><div class="stat-value" id="adm-lab-done">—</div></div>
+      </div>
+
+      <!-- فلتر + جدول كل الطلبات -->
+      <div class="card">
+        <div class="card-header">
+          <div class="filters-row" style="margin:0;flex:1">
+            <div class="search-bar" style="flex:1;max-width:260px">
+              <i class="fa-solid fa-search"></i>
+              <input class="form-control" id="adm-lab-search" placeholder="بحث باسم المريض أو الطبيب..." oninput="filterAdminLab()"/>
+            </div>
+            <select class="form-control" id="adm-lab-status" onchange="filterAdminLab()" style="width:auto">
+              <option value="">كل الحالات</option>
+              <option value="pending">في الانتظار</option>
+              <option value="processing">قيد التحليل</option>
+              <option value="ready">جاهز للمراجعة</option>
+              <option value="completed">مكتمل</option>
+            </select>
+            <select class="form-control" id="adm-lab-priority" onchange="filterAdminLab()" style="width:auto">
+              <option value="">كل الأولويات</option>
+              <option value="normal">عادي</option>
+              <option value="urgent">عاجل</option>
+              <option value="stat">فوري</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>المريض</th><th>الطبيب</th><th>الاختبارات</th><th>الأولوية</th><th>التاريخ</th><th>الحالة</th><th>إجراءات</th></tr>
+            </thead>
+            <tbody id="adm-lab-table"><tr><td colspan="7" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1018,6 +1086,10 @@
 <script src="pwa-register.js"></script>
 <script type="module">
 import{createClient}from'https://esm.sh/@supabase/supabase-js@2'
+import{initDarkMode,toggleDarkMode,initGlobalSearch,openGlobalSearch,loadPatientsIndex}from'./shared/global-features.js'
+window.toggleDarkMode=toggleDarkMode
+window.openGlobalSearch=(s,o)=>openGlobalSearch(s,o)
+initDarkMode()
 const sb=createClient(
   'https://kfbylfsqzbsqyqnjzjrw.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYnlsZnNxemJzcXlxbmp6anJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjE3MDQsImV4cCI6MjA5NDM5NzcwNH0.x_Tv06wcQAFRTX_nutecP13FzPM9mN8js6ITeVl9d4k'
@@ -1857,7 +1929,124 @@ window.nav=function(id){
   if(id==='roles')loadRoles()
   if(id==='services')loadServices()
   if(id==='contracts')loadContracts()
-  if(id==='export'){/* static page */}
+  if(id==='lab')loadLab()
+}
+
+// ══════════════════════════════════════════════════════
+// ★ المختبر — متصل بـ Supabase (Admin View) ★
+// ══════════════════════════════════════════════════════
+let allLabOrders=[], labActiveFilter='all'
+
+const labStatusMap={
+  pending:   {label:'في الانتظار', cls:'badge-gray'},
+  processing:{label:'قيد التحليل', cls:'badge-warning'},
+  ready:     {label:'جاهز للمراجعة', cls:'badge-info'},
+  completed: {label:'مكتمل',       cls:'badge-success'},
+}
+const labPriorityMap={normal:'عادي',urgent:'عاجل',stat:'فوري'}
+const labPriorityCls={normal:'badge-gray',urgent:'badge-warning',stat:'badge-danger'}
+
+async function loadLab(){
+  const{data,error}=await sb.from('lab_orders')
+    .select('*,patients(full_name,mrn),profiles!lab_orders_doctor_id_fkey(full_name),lab_order_tests(*)')
+    .eq('organization_id',orgId)
+    .order('created_at',{ascending:false})
+
+  if(error){
+    // جرب بدون join الطبيب في حالة الـ foreign key مختلف
+    const{data:d2}=await sb.from('lab_orders')
+      .select('*,patients(full_name,mrn),lab_order_tests(*)')
+      .eq('organization_id',orgId)
+      .order('created_at',{ascending:false})
+    allLabOrders=d2||[]
+  } else {
+    allLabOrders=data||[]
+  }
+
+  // إحصائيات
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  set('adm-lab-total',   allLabOrders.length)
+  set('adm-lab-processing',allLabOrders.filter(o=>o.status==='processing').length)
+  set('adm-lab-review',  allLabOrders.filter(o=>o.status==='ready').length)
+  set('adm-lab-done',    allLabOrders.filter(o=>o.status==='completed').length)
+
+  renderAdminLab(allLabOrders)
+}
+
+function renderAdminLab(orders){
+  const tb=document.getElementById('adm-lab-table')
+  if(!orders.length){
+    tb.innerHTML='<tr><td colspan="7" class="table-empty">لا توجد طلبات مختبر</td></tr>'
+    return
+  }
+  const fdate=d=>d?new Date(d).toLocaleDateString('ar-EG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—'
+  tb.innerHTML=orders.map(o=>{
+    const st=labStatusMap[o.status]||{label:o.status,cls:'badge-gray'}
+    const tests=(o.lab_order_tests||[]).map(t=>t.test_name||t.name||'').filter(Boolean)
+    const docName=o.profiles?.full_name||'—'
+    return`<tr>
+      <td>
+        <div style="font-weight:600">${o.patients?.full_name||'—'}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${o.patients?.mrn||''}</div>
+      </td>
+      <td>${docName}</td>
+      <td>
+        ${tests.slice(0,3).map(t=>`<span class="badge badge-blue" style="font-size:10px;margin:1px">${t}</span>`).join('')}
+        ${tests.length>3?`<span style="font-size:11px;color:var(--text-muted)">+${tests.length-3}</span>`:''}
+        ${!tests.length?'<span style="color:var(--text-muted)">—</span>':''}
+      </td>
+      <td><span class="badge ${labPriorityCls[o.priority]||'badge-gray'}">${labPriorityMap[o.priority]||o.priority||'—'}</span></td>
+      <td style="font-size:12px">${fdate(o.created_at)}</td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="changeLabStatus('${o.id}','processing')" title="بدء التحليل"
+          ${o.status==='completed'?'disabled':''}>
+          <i class="fa-solid fa-flask"></i>
+        </button>
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="changeLabStatus('${o.id}','ready')" title="جاهز للمراجعة"
+          ${o.status==='completed'?'disabled':''}>
+          <i class="fa-solid fa-check"></i>
+        </button>
+        <button class="btn btn-success btn-sm" onclick="changeLabStatus('${o.id}','completed')" title="اعتماد"
+          ${o.status==='completed'?'disabled style="opacity:.5"':''}>
+          <i class="fa-solid fa-check-double"></i>
+        </button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteLabOrder('${o.id}')" title="حذف">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </td>
+    </tr>`
+  }).join('')
+}
+
+window.filterAdminLab=function(){
+  const q=document.getElementById('adm-lab-search').value.toLowerCase()
+  const st=document.getElementById('adm-lab-status').value
+  const pr=document.getElementById('adm-lab-priority').value
+  renderAdminLab(allLabOrders.filter(o=>
+    (!q||(o.patients?.full_name||'').toLowerCase().includes(q)||
+         (o.profiles?.full_name||'').toLowerCase().includes(q))&&
+    (!st||o.status===st)&&
+    (!pr||o.priority===pr)
+  ))
+}
+
+window.changeLabStatus=async function(id,status){
+  const statusLabels={processing:'قيد التحليل',ready:'جاهز للمراجعة',completed:'مكتمل'}
+  const{error}=await sb.from('lab_orders').update({status}).eq('id',id)
+  if(error){toast('خطأ',error.message,'error');return}
+  toast(`تم تحديث حالة الطلب`,statusLabels[status]||status,'success')
+  loadLab()
+}
+
+window.deleteLabOrder=async function(id){
+  if(!confirm('حذف هذا الطلب؟'))return
+  // حذف الاختبارات أولاً
+  await sb.from('lab_order_tests').delete().eq('lab_order_id',id)
+  const{error}=await sb.from('lab_orders').delete().eq('id',id)
+  if(error){toast('خطأ',error.message,'error');return}
+  toast('تم الحذف','','success')
+  loadLab()
 }
 
 // ══════════════════════════════════════════════════════
@@ -2131,6 +2320,9 @@ await loadSelects()
 await loadDashboard()
 setupRealtime()
 setupWeekRealtime()
+// ★ تهيئة البحث العام
+initGlobalSearch(sb, orgId, window.nav, window.openModal)
+await loadPatientsIndex(sb, orgId, window.nav)
 </script>
 </body>
 </html>
