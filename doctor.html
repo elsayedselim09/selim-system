@@ -13,7 +13,36 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="shared/styles.css"/>
-<link rel="stylesheet" href="shared/styles-extra.css"/>
+<style>
+/* ══ DARK MODE ══ */
+body.dark-mode{--primary:#3A8FCC;--primary-dark:#1B6CA8;--primary-light:rgba(58,143,204,.15);--sidebar-bg:#0A1929;--sidebar-hover:#0F2744;--sidebar-active:#1B6CA8;--bg:#0F1923;--card:#162032;--text:#E2E8F0;--text-muted:#94A3B8;--text-light:#64748B;--border:#1E3148;--border-light:#1A2B40;--success-light:rgba(16,185,129,.15);--warning-light:rgba(245,158,11,.15);--danger-light:rgba(239,68,68,.15);--info-light:rgba(99,102,241,.15)}
+body.dark-mode .topbar{background:#162032;border-color:#1E3148}
+body.dark-mode .modal{background:#162032}
+body.dark-mode .form-control{background:#1E3148;border-color:#2A3F5A;color:#E2E8F0}
+body.dark-mode tr:hover td{background:rgba(255,255,255,.03)}
+body.dark-mode .week-slot:hover{background:rgba(58,143,204,.06)}
+body.dark-mode .lab-order-card{background:#162032;border-color:#1E3148}
+body.dark-mode .gs-item:hover,.dark-mode .gs-item.focused{background:rgba(58,143,204,.12)}
+body.dark-mode .search-modal{background:#162032}
+body.dark-mode .search-input{color:#E2E8F0}
+.dark-mode-transition *{transition:background-color .3s,border-color .3s,color .2s !important}
+/* ══ DARK TOGGLE ══ */
+.dark-toggle{width:36px;height:36px;border:1px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text-muted);transition:all .15s}
+.dark-toggle:hover{background:var(--bg);color:var(--primary)}
+/* ══ SEARCH BUTTON ══ */
+.topbar-search-btn{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;color:var(--text-muted);transition:border-color .15s;font-family:var(--font)}
+.topbar-search-btn:hover{border-color:var(--primary);color:var(--primary)}
+.topbar-search-btn .kbd{font-size:10px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:var(--text-light)}
+/* ══ GLOBAL SEARCH ══ */
+.search-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding-top:80px;opacity:0;pointer-events:none;transition:opacity .2s}
+.search-overlay.open{opacity:1;pointer-events:all}
+.search-modal{width:640px;max-width:95vw;background:var(--card);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,.2);overflow:hidden;transform:translateY(-12px);transition:transform .2s}
+.search-overlay.open .search-modal{transform:none}
+.search-input-wrap{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.search-input{flex:1;border:none;outline:none;font-size:16px;color:var(--text);background:transparent;font-family:var(--font)}
+.search-input::placeholder{color:var(--text-light)}
+.gs-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:background .1s}
+.gs-item:hover,.gs-item.focused{background:var(--primary-light)}</style>
 <style>
 @media print{.sidebar,.topbar,.modal-overlay,.toast-wrap{display:none!important}.main-wrap{margin:0!important}}
 
@@ -365,11 +394,89 @@
 <script src="pwa-register.js"></script>
 <script type="module">
 import{createClient}from'https://esm.sh/@supabase/supabase-js@2'
-import{initDarkMode,toggleDarkMode,initGlobalSearch,openGlobalSearch,loadPatientsIndex}from'./shared/global-features.js'
 
-window.toggleDarkMode=toggleDarkMode
-window.openGlobalSearch=(s,o)=>openGlobalSearch(s,o)
-initDarkMode()
+// ══ Dark Mode (مباشر بدون import) ══
+const DARK_KEY='selim_dark_mode'
+;(function(){if(localStorage.getItem(DARK_KEY)==='true'){document.body.classList.add('dark-mode');const i=document.getElementById('dark-toggle-icon');if(i)i.className='fa-solid fa-sun'}})()
+window.toggleDarkMode=function(){
+  const d=document.body.classList.toggle('dark-mode')
+  document.body.classList.add('dark-mode-transition')
+  setTimeout(()=>document.body.classList.remove('dark-mode-transition'),400)
+  localStorage.setItem(DARK_KEY,d)
+  const i=document.getElementById('dark-toggle-icon')
+  if(i)i.className=d?'fa-solid fa-sun':'fa-regular fa-moon'
+}
+
+// ══ Global Search (مباشر بدون import) ══
+let _gsFocus=-1
+const _gsData=[
+  {title:'جدولي اليوم',sub:'الجدول والمواعيد',icon:'fa-calendar-day',bg:'#EEF2FF',color:'#6366F1',page:'schedule'},
+  {title:'مرضاي',sub:'قائمة مرضى الطبيب',icon:'fa-users',bg:'#D1FAE5',color:'#065F46',page:'patients'},
+  {title:'الوصفات',sub:'الوصفات الطبية',icon:'fa-prescription',bg:'#DBEAFE',color:'#1D4ED8',page:'prescriptions'},
+  {title:'طلبات المختبر',sub:'إرسال طلبات التحاليل',icon:'fa-flask',bg:'#FEF3C7',color:'#92400E',page:'lab'},
+  {title:'نتائج التحاليل',sub:'مراجعة واعتماد النتائج',icon:'fa-chart-bar',bg:'#FEE2E2',color:'#991B1B',page:'lab-results'},
+  {title:'الجدول الأسبوعي',sub:'عرض أسبوعي للمواعيد',icon:'fa-calendar-week',bg:'#EDE9FE',color:'#5B21B6',page:'week'},
+]
+window.openGlobalSearch=function(){
+  let ov=document.getElementById('_gs_ov')
+  if(!ov){
+    ov=document.createElement('div');ov.id='_gs_ov'
+    ov.style='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding-top:80px;opacity:0;pointer-events:none;transition:opacity .2s'
+    ov.innerHTML=`<div onclick="event.stopPropagation()" style="width:600px;max-width:95vw;background:var(--card);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.2);overflow:hidden;transform:translateY(-12px);transition:transform .2s" id="_gs_modal">
+      <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)">
+        <i class="fa-solid fa-magnifying-glass" style="color:var(--text-muted);font-size:18px;flex-shrink:0"></i>
+        <input id="_gs_inp" placeholder="ابحث في النظام..." oninput="_gsRun(this.value)" onkeydown="_gsKey(event)"
+          style="flex:1;border:none;outline:none;font-size:16px;color:var(--text);background:transparent;font-family:var(--font)"/>
+        <span style="font-size:11px;color:var(--text-light);background:var(--bg);padding:2px 7px;border-radius:4px;border:1px solid var(--border)">ESC</span>
+      </div>
+      <div id="_gs_res"></div>
+      <div style="padding:10px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-light);display:flex;gap:12px">
+        <span>↑↓ للتنقل</span><span>Enter للفتح</span><span>ESC للإغلاق</span>
+      </div>
+    </div>`
+    ov.addEventListener('click',window.closeGlobalSearch)
+    document.body.appendChild(ov)
+  }
+  requestAnimationFrame(()=>{ov.style.opacity='1';ov.style.pointerEvents='all';const m=document.getElementById('_gs_modal');if(m)m.style.transform='none'})
+  const inp=document.getElementById('_gs_inp');if(inp){inp.value='';inp.focus()}
+  _gsFocus=-1;_gsRender(_gsData)
+}
+window.closeGlobalSearch=function(){
+  const ov=document.getElementById('_gs_ov')
+  if(ov){ov.style.opacity='0';ov.style.pointerEvents='none';const m=document.getElementById('_gs_modal');if(m)m.style.transform='translateY(-12px)'}
+}
+window._gsRun=function(q){
+  if(!q.trim()){_gsRender(_gsData);return}
+  const m=_gsData.filter(e=>e.title.includes(q)||e.sub.includes(q))
+  _gsRender(m.length?m:[])
+  if(!m.length){document.getElementById('_gs_res').innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">لا توجد نتائج</div>'}
+}
+function _gsRender(items){
+  const el=document.getElementById('_gs_res');if(!el)return
+  el.innerHTML=items.map((r,i)=>`<div onclick="window.nav('${r.page}');window.closeGlobalSearch()"
+    style="display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:background .1s" class="_gsi"
+    onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background=''">
+    <div style="width:34px;height:34px;border-radius:8px;background:${r.bg};color:${r.color};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
+      <i class="fa-solid ${r.icon}"></i>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:500;color:var(--text)">${r.title}</div>
+      <div style="font-size:11px;color:var(--text-muted)">${r.sub}</div>
+    </div>
+  </div>`).join('')
+}
+window._gsKey=function(e){
+  const items=document.querySelectorAll('._gsi')
+  if(e.key==='ArrowDown'){e.preventDefault();_gsFocus=Math.min(_gsFocus+1,items.length-1)}
+  else if(e.key==='ArrowUp'){e.preventDefault();_gsFocus=Math.max(_gsFocus-1,0)}
+  else if(e.key==='Enter'&&_gsFocus>=0){items[_gsFocus]?.click();return}
+  else if(e.key==='Escape'){window.closeGlobalSearch();return}
+  items.forEach((el,i)=>el.style.background=i===_gsFocus?'var(--primary-light)':'')
+}
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();window.openGlobalSearch()}
+  if(e.key==='Escape')window.closeGlobalSearch()
+})
 
 const sb=createClient('https://kfbylfsqzbsqyqnjzjrw.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmYnlsZnNxemJzcXlxbmp6anJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MjE3MDQsImV4cCI6MjA5NDM5NzcwNH0.x_Tv06wcQAFRTX_nutecP13FzPM9mN8js6ITeVl9d4k')
 let profile,orgId,drId,allDrPts=[]
@@ -730,9 +837,6 @@ window.printRx=async(rxId)=>{
 // ── Init ──
 await loadDrPatients()
 await loadSchedule()
-// ★ تهيئة البحث العام والوضع الليلي
-initGlobalSearch(sb, orgId, window.nav, window.openModal)
-await loadPatientsIndex(sb, orgId, window.nav)
 </script>
 </body>
 </html>
