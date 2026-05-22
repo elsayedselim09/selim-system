@@ -128,6 +128,98 @@ body.dark-mode .lab-order-card{background:#162032;border-color:#1E3148}
 .perm-check.on{background:var(--primary);border-color:var(--primary);color:#fff}
 @media print{.sidebar,.topbar,.modal-overlay,.toast-wrap{display:none!important}.main-wrap{margin:0!important}}
 
+/* ══ PATIENTS PAGE ══ */
+.pt-filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.pt-filter-tab{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+  font-size:13px;font-weight:500;cursor:pointer;
+  background:var(--card);color:var(--text-muted);transition:all .15s;
+}
+.pt-filter-tab:hover{border-color:var(--primary);color:var(--primary)}
+.pt-filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pt-filter-tab .pt-tab-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:20px;height:20px;padding:0 5px;border-radius:10px;
+  font-size:11px;font-weight:700;
+  background:rgba(255,255,255,.25);
+}
+.pt-filter-tab:not(.active) .pt-tab-count{background:var(--border);color:var(--text-muted)}
+
+.pt-search-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:16px;
+}
+.pt-search-wrap{
+  flex:1;display:flex;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:8px 14px;max-width:420px;
+  transition:border-color .15s;
+}
+.pt-search-wrap:focus-within{border-color:var(--primary)}
+.pt-search-wrap input{
+  border:none;outline:none;background:transparent;
+  font-size:13px;color:var(--text);flex:1;
+  font-family:var(--font);
+}
+.pt-search-wrap i{color:var(--text-light);font-size:13px}
+
+/* avatar colors */
+.av-blue{background:#DBEAFE;color:#1D4ED8}
+.av-green{background:#D1FAE5;color:#065F46}
+.av-purple{background:#EDE9FE;color:#5B21B6}
+.av-amber{background:#FEF3C7;color:#92400E}
+.av-pink{background:#FCE7F3;color:#9D174D}
+.av-red{background:#FEE2E2;color:#991B1B}
+
+/* ══ PATIENT PROFILE ══ */
+.prof-header{
+  display:flex;align-items:flex-start;gap:16px;
+  padding:20px;border-bottom:1px solid var(--border);
+}
+.prof-avatar-lg{
+  width:56px;height:56px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;flex-shrink:0;
+}
+.prof-info{flex:1}
+.prof-name{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}
+.prof-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);margin-bottom:8px}
+.prof-meta span{display:flex;align-items:center;gap:4px}
+.prof-contacts{display:flex;gap:16px;flex-wrap:wrap}
+.prof-contact{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:5px}
+.prof-allergy{
+  padding:8px 14px;border-radius:8px;text-align:center;
+  font-size:13px;font-weight:600;
+}
+
+.prof-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto}
+.prof-tab{
+  padding:11px 18px;font-size:13px;font-weight:500;
+  color:var(--text-muted);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:all .15s;white-space:nowrap;
+  background:none;border-top:none;border-left:none;border-right:none;
+  font-family:var(--font);
+}
+.prof-tab:hover{color:var(--primary)}
+.prof-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+.prof-tab-content{display:none}
+.prof-tab-content.active{display:block}
+
+.detail-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--border);
+}
+.detail-row:last-child{border-bottom:none}
+.detail-lbl{font-size:12px;color:var(--text-muted)}
+.detail-val{font-size:13px;font-weight:500;text-align:left}
+
+/* dark mode للمرضى */
+body.dark-mode .pt-search-wrap{background:#1E3148;border-color:#2A3F5A}
+body.dark-mode .pt-search-wrap input{color:#E2E8F0}
+body.dark-mode .pt-filter-tab{background:#162032;border-color:#1E3148}
+
 /* ══ DASHBOARD NEW STYLES ══ */
 .welcome-banner{
   background:linear-gradient(135deg,var(--primary) 0%,#3A8FCC 100%);
@@ -672,23 +764,266 @@ body.dark-mode .lab-order-card{background:#162032;border-color:#1E3148}
     <!-- ══ PATIENTS ══ -->
     <div class="page" id="page-patients">
       <div class="page-header">
-        <div><div class="page-header-title">المرضى</div><div class="page-header-sub" id="patients-count"></div></div>
-        <button class="btn btn-primary" onclick="openModal('modal-patient')"><i class="fa-solid fa-plus"></i> مريض جديد</button>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="search-bar" style="max-width:280px"><i class="fa-solid fa-search"></i><input class="form-control" id="patient-search" placeholder="بحث بالاسم أو الرقم..." oninput="filterPatients()"/></div>
+        <div>
+          <div class="page-header-title">
+            <i class="fa-solid fa-users" style="color:var(--primary);margin-left:8px"></i>المرضى
+          </div>
         </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportExcel('patients')">
+            <i class="fa-solid fa-download"></i> تصدير
+          </button>
+          <button class="btn btn-primary" onclick="openModal('modal-patient')">
+            <i class="fa-solid fa-user-plus"></i> مريض جديد
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="pt-filter-tabs" id="pt-filter-tabs">
+        <button class="pt-filter-tab active" data-filter="all" onclick="switchPatientFilter('all',this)">
+          الكل <span class="pt-tab-count" id="pt-count-all">0</span>
+        </button>
+        <button class="pt-filter-tab" data-filter="new" onclick="switchPatientFilter('new',this)">
+          جديد <span class="pt-tab-count" id="pt-count-new">0</span>
+        </button>
+      </div>
+
+      <!-- Search + Filter Row -->
+      <div class="pt-search-row">
+        <div class="pt-search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input placeholder="بحث بالاسم الرقم أو الهاتف..." id="patient-search" oninput="filterPatients()"/>
+        </div>
+        <button class="btn btn-ghost btn-sm">
+          <i class="fa-solid fa-filter"></i> تصفية
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>الرقم الطبي</th><th>المريض</th><th>الجنس</th><th>الهاتف</th><th>الطبيب المعالج</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-            <tbody id="patients-table"><tr><td colspan="7" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+            <thead>
+              <tr>
+                <th>المريض</th>
+                <th>رقم الملف</th>
+                <th>العمر / الجنس</th>
+                <th>الطبيب المعالج</th>
+                <th>آخر زيارة</th>
+                <th>الحالة</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="patients-table">
+              <tr><td colspan="7" class="table-empty"><div class="loading-spin"></div></td></tr>
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ══ DOCTORS ══ -->
+    <!-- ══ PATIENT PROFILE ══ -->
+    <div class="page" id="page-patient-profile">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-ghost btn-sm" onclick="nav('patients')">
+            <i class="fa-solid fa-arrow-right"></i> العودة
+          </button>
+          <div>
+            <div class="page-header-title" id="pp-page-title">ملف المريض</div>
+            <div class="page-header-sub" id="pp-page-sub">MRN · الحالة</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-patient')">
+          <i class="fa-solid fa-pen"></i> تعديل
+        </button>
+      </div>
+
+      <!-- Profile Card -->
+      <div class="card" style="margin-bottom:14px">
+        <!-- Header -->
+        <div class="prof-header">
+          <div class="prof-avatar-lg av-blue" id="pp-avatar">MA</div>
+          <div class="prof-info">
+            <div class="prof-name" id="pp-name">—</div>
+            <div class="prof-meta">
+              <span id="pp-mrn">—</span>
+              <span style="color:var(--border)">·</span>
+              <span id="pp-age-gender">—</span>
+              <span style="color:var(--border)">·</span>
+              <span class="badge badge-success" id="pp-status-badge"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span> نشط</span>
+            </div>
+            <div class="prof-contacts">
+              <div class="prof-contact"><i class="fa-solid fa-phone" style="color:var(--primary)"></i><span id="pp-phone">—</span></div>
+              <div class="prof-contact"><i class="fa-solid fa-user-doctor" style="color:var(--primary)"></i><span id="pp-doctor">—</span></div>
+              <div class="prof-contact"><i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i><span id="pp-insurance">—</span></div>
+            </div>
+          </div>
+          <!-- Allergies -->
+          <div id="pp-allergies" style="display:flex;gap:8px;flex-shrink:0"></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="prof-tabs" id="prof-tabs">
+          <button class="prof-tab active" onclick="switchProfTab('overview',this)">نظرة عامة</button>
+          <button class="prof-tab" onclick="switchProfTab('visits',this)">الزيارات</button>
+          <button class="prof-tab" onclick="switchProfTab('medications',this)">الأدوية</button>
+          <button class="prof-tab" onclick="switchProfTab('vitals',this)">العلامات الحيوية</button>
+          <button class="prof-tab" onclick="switchProfTab('invoices',this)">الفواتير</button>
+          <button class="prof-tab" onclick="switchProfTab('lab',this)">المختبر</button>
+          <button class="prof-tab" onclick="switchProfTab('radiology',this)">الأشعة</button>
+        </div>
+      </div>
+
+      <!-- Tab: نظرة عامة -->
+      <div class="prof-tab-content active" id="pptab-overview">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <!-- التشخيصات -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-stethoscope" style="color:var(--primary);margin-left:6px"></i>التشخيصات</div>
+              <button class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> جديد</button>
+            </div>
+            <div class="card-body" style="padding:8px 20px" id="pp-diagnoses">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+          </div>
+          <!-- العلامات الحيوية الأخيرة -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-heart-pulse" style="color:var(--danger);margin-left:6px"></i>أحدث العلامات الحيوية</div>
+              <div style="font-size:11px;color:var(--text-muted)" id="pp-vitals-date">—</div>
+            </div>
+            <div class="card-body" style="padding:8px 20px" id="pp-latest-vitals">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <!-- الأدوية الحالية -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-pills" style="color:#6366F1;margin-left:6px"></i>الأدوية الحالية</div>
+            </div>
+            <div class="card-body" style="padding:8px 20px" id="pp-current-meds">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+          </div>
+          <!-- معلومات إضافية -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-regular fa-note-sticky" style="color:var(--warning);margin-left:6px"></i>معلومات إضافية</div>
+            </div>
+            <div class="card-body" style="padding:8px 20px" id="pp-extra-info">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: الزيارات -->
+      <div class="prof-tab-content" id="pptab-visits">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">سجل الزيارات</div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modal-appt')">
+              <i class="fa-solid fa-plus"></i> موعد جديد
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>التاريخ</th><th>الطبيب</th><th>الخدمة</th><th>التشخيص</th><th>المبلغ</th><th>الحالة</th></tr></thead>
+              <tbody id="pp-visits-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: الأدوية -->
+      <div class="prof-tab-content" id="pptab-medications">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">الأدوية والوصفات</div>
+            <button class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> وصفة جديدة</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>الدواء</th><th>الجرعة</th><th>التكرار</th><th>بدأ</th><th>الحالة</th></tr></thead>
+              <tbody id="pp-meds-table"><tr><td colspan="5" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: العلامات الحيوية -->
+      <div class="prof-tab-content" id="pptab-vitals">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">سجل العلامات الحيوية</div>
+            <button class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> تسجيل جديد</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>التاريخ</th><th>ضغط الدم</th><th>النبض</th><th>الحرارة</th><th>الوزن</th><th>السكر (صيام)</th></tr></thead>
+              <tbody id="pp-vitals-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: الفواتير -->
+      <div class="prof-tab-content" id="pptab-invoices">
+        <div class="card">
+          <div class="card-header"><div class="card-title">فواتير المريض</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>رقم الفاتورة</th><th>التاريخ</th><th>الخدمة</th><th>المبلغ</th><th>الحالة</th></tr></thead>
+              <tbody id="pp-invoices-table"><tr><td colspan="5" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: المختبر -->
+      <div class="prof-tab-content" id="pptab-lab">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-flask" style="color:var(--primary);margin-left:6px"></i>طلبات المختبر</div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modal-lab-order')">
+              <i class="fa-solid fa-plus"></i> طلب جديد
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>رقم الطلب</th><th>التاريخ</th><th>الطبيب</th><th>الاختبارات</th><th>الأولوية</th><th>الحالة</th></tr></thead>
+              <tbody id="pp-lab-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: الأشعة -->
+      <div class="prof-tab-content" id="pptab-radiology">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-x-ray" style="color:var(--primary);margin-left:6px"></i>طلبات الأشعة</div>
+            <button class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-plus"></i> طلب جديد
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>رقم الطلب</th><th>التاريخ</th><th>الطبيب</th><th>نوع الأشعة</th><th>الحالة</th><th>النتيجة</th></tr></thead>
+              <tbody id="pp-radiology-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
     <div class="page" id="page-doctors">
       <div class="page-header">
         <div><div class="page-header-title">الأطباء</div></div>
@@ -1382,6 +1717,60 @@ body.dark-mode .lab-order-card{background:#162032;border-color:#1E3148}
   <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-item')">إغلاق</button></div></div>
 </div>
 
+<!-- Lab Order Modal -->
+<div class="modal-overlay" id="modal-lab-order" onclick="closeModal('modal-lab-order')">
+  <div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fa-solid fa-flask" style="color:var(--primary);margin-left:6px"></i>طلب تحليل جديد</span>
+      <button class="modal-close" onclick="closeModal('modal-lab-order')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-group">
+          <label class="form-label">المريض</label>
+          <select class="form-control" id="lab-order-patient">
+            <option value="">— اختر مريض —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">الطبيب الطالب</label>
+          <select class="form-control" id="lab-order-doctor">
+            <option value="">— اختر طبيب —</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">التحاليل المطلوبة (كل تحليل في سطر)</label>
+        <textarea class="form-control" id="lab-order-tests" rows="4" placeholder="مثال:&#10;CBC&#10;Blood Sugar&#10;HbA1c"></textarea>
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group">
+          <label class="form-label">الأولوية</label>
+          <select class="form-control" id="lab-order-priority">
+            <option value="normal">عادي</option>
+            <option value="urgent">عاجل</option>
+            <option value="stat">فوري</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">موعد التسليم</label>
+          <input type="datetime-local" class="form-control" id="lab-order-due"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ملاحظات للمختبر</label>
+        <textarea class="form-control" id="lab-order-notes" rows="2" placeholder="تعليمات خاصة..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-lab-order')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveLabOrderFromProfile()">
+        <i class="fa-solid fa-paper-plane"></i> إرسال الطلب
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toast-wrap"></div>
 <script src="pwa-register.js"></script>
 <script type="module">
@@ -1501,14 +1890,14 @@ function badge(s){
 const typeLabel={consultation:'كشف',follow_up:'متابعة',procedure:'إجراء',checkup:'فحص'}
 
 // ── Navigation ──
-const titles={dashboard:'لوحة التحكم','week-view':'العرض الأسبوعي',appointments:'المواعيد',patients:'المرضى',doctors:'الأطباء',employees:'الموظفون',invoices:'الفواتير',inventory:'المخزون',branches:'الفروع',reports:'التقارير',settings:'الإعدادات'}
+const titles={dashboard:'لوحة التحكم','week-view':'العرض الأسبوعي',appointments:'المواعيد',patients:'المرضى','patient-profile':'ملف المريض',doctors:'الأطباء',employees:'الموظفون',invoices:'الفواتير',inventory:'المخزون',branches:'الفروع',reports:'التقارير',settings:'الإعدادات'}
 window.nav=function(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'))
   document.getElementById('page-'+id)?.classList.add('active')
   document.getElementById('nav-'+id)?.classList.add('active')
   document.getElementById('topbar-title').textContent=titles[id]||''
-  const loaders={appointments:loadAppts,patients:loadPatients,doctors:loadDoctors,employees:loadEmployeesWithEdit,invoices:loadInvoices,inventory:loadInventory,branches:loadBranches,reports:loadReports,settings:loadSettings,'week-view':loadWeekView}
+  const loaders={appointments:loadAppts,patients:loadPatients,'patient-profile':()=>{},doctors:loadDoctors,employees:loadEmployeesWithEdit,invoices:loadInvoices,inventory:loadInventory,branches:loadBranches,reports:loadReports,settings:loadSettings,'week-view':loadWeekView}
   loaders[id]?.()
 }
 
@@ -2034,24 +2423,382 @@ window.deleteAppt=async(id)=>{
 }
 
 // ── Patients ──
+// ══════════════════════════════════════════════════════
+// ★ المرضى — النسخة الجديدة ★
+// ══════════════════════════════════════════════════════
+let ptActiveFilter='all', currentPatientId=null
+
+// ألوان الـ avatar بالترتيب
+const PT_COLORS=['av-blue','av-green','av-purple','av-amber','av-pink','av-red']
+function getPtColor(str=''){
+  let h=0;for(const c of str)h+=c.charCodeAt(0);return PT_COLORS[h%PT_COLORS.length]
+}
+function getPtInitials(name=''){
+  return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
+}
+function fdate(d){return d?new Date(d).toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'}):'—'}
+function calcAge(dob){
+  if(!dob)return'—'
+  return Math.floor((Date.now()-new Date(dob))/(365.25*864e5))+' سنة'
+}
+
 async function loadPatients(){
-  const{data}=await sb.from('patients').select('*,profiles!patients_assigned_doctor_id_fkey(full_name)').eq('organization_id',orgId).order('created_at',{ascending:false})
+  const{data,error}=await sb.from('patients')
+    .select('*,profiles!patients_assigned_doctor_id_fkey(full_name)')
+    .eq('organization_id',orgId)
+    .order('created_at',{ascending:false})
+  if(error){toast('خطأ في تحميل المرضى',error.message,'error');return}
   allPatients=data||[]
-  document.getElementById('patients-count').textContent=`${allPatients.length} مريض`
-  renderPatients(allPatients)
+
+  // تحديث العدادات
+  const allCount=allPatients.length
+  const newCount=allPatients.filter(p=>p.status==='new').length
+  const setCount=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  setCount('pt-count-all',allCount)
+  setCount('pt-count-new',newCount)
+
+  // تطبيق الفلتر الحالي
+  applyPatientFilter()
+
+  // تحميل الأطباء لموداله
   const{data:docs}=await sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
   const sel=document.getElementById('patient-doctor')
-  sel.innerHTML='<option value="">— بلا طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
+  if(sel) sel.innerHTML='<option value="">— بلا طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
 }
+
+function applyPatientFilter(){
+  const q=(document.getElementById('patient-search')?.value||'').toLowerCase()
+  let data=allPatients
+  if(ptActiveFilter==='new') data=data.filter(p=>p.status==='new')
+  if(q) data=data.filter(p=>(p.full_name||'').toLowerCase().includes(q)||(p.mrn||'').includes(q)||(p.phone||'').includes(q))
+  renderPatients(data)
+}
+
+window.switchPatientFilter=function(filter,el){
+  ptActiveFilter=filter
+  document.querySelectorAll('.pt-filter-tab').forEach(b=>b.classList.remove('active'))
+  el.classList.add('active')
+  applyPatientFilter()
+}
+
 function renderPatients(data){
   const tb=document.getElementById('patients-table')
-  if(!data.length){tb.innerHTML='<tr><td colspan="7" class="table-empty">لا يوجد مرضى</td></tr>';return}
-  tb.innerHTML=data.map(p=>`<tr><td><code>${p.mrn}</code></td><td>${p.full_name}</td><td>${p.gender==='male'?'ذكر':'أنثى'}</td><td>${p.phone||'—'}</td><td>${p.profiles?.full_name||'—'}</td><td>${badge(p.status)}</td><td><button class="btn btn-ghost btn-sm btn-icon" onclick="editPatient('${p.id}')"><i class="fa-solid fa-pen"></i></button></td></tr>`).join('')
+  if(!tb)return
+  if(!data.length){
+    tb.innerHTML='<tr><td colspan="7" class="table-empty">لا يوجد مرضى</td></tr>'
+    return
+  }
+  const statusMap={
+    active:{label:'نشط',cls:'badge-success'},
+    new:{label:'جديد',cls:'badge-blue'},
+    inactive:{label:'غير نشط',cls:'badge-gray'},
+    on_leave:{label:'في إجازة',cls:'badge-warning'},
+  }
+  tb.innerHTML=data.map((p,i)=>{
+    const initials=getPtInitials(p.full_name)
+    const color=getPtColor(p.full_name)
+    const st=statusMap[p.status]||{label:p.status||'—',cls:'badge-gray'}
+    const age=calcAge(p.date_of_birth)
+    const gender=p.gender==='male'?'ذكر':'أنثى'
+    // آخر زيارة — سنعرضها من created_at كمؤقت إن لم يكن لدينا appointments
+    const lastVisit=fdate(p.updated_at||p.created_at)
+    return`<tr style="cursor:pointer" onclick="openPatientProfile('${p.id}')">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar avatar-sm ${color}">${initials}</div>
+          <div>
+            <div style="font-weight:600;font-size:13px">${p.full_name}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${p.mrn||'—'}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="badge badge-blue" style="font-size:10px;font-family:monospace">${p.mrn||'—'}</span></td>
+      <td style="font-size:13px">${age} · ${gender}</td>
+      <td style="font-size:13px">${p.profiles?.full_name||'—'}</td>
+      <td style="font-size:13px">${lastVisit}</td>
+      <td>
+        <span class="badge ${st.cls}">
+          <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;margin-left:4px"></span>
+          ${st.label}
+        </span>
+      </td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="openPatientProfile('${p.id}')" title="عرض الملف">
+          <i class="fa-regular fa-eye"></i>
+        </button>
+      </td>
+    </tr>`
+  }).join('')
 }
-window.filterPatients=()=>{
-  const s=document.getElementById('patient-search').value.toLowerCase()
-  renderPatients(allPatients.filter(p=>(p.full_name||'').toLowerCase().includes(s)||(p.mrn||'').toLowerCase().includes(s)))
+
+window.filterPatients=function(){applyPatientFilter()}
+
+// ── فتح ملف المريض ──
+window.openPatientProfile=async function(id){
+  if(!id)return
+  currentPatientId=id
+  // تحميل بيانات المريض
+  const{data:p,error}=await sb.from('patients')
+    .select('*,profiles!patients_assigned_doctor_id_fkey(full_name)')
+    .eq('id',id).single()
+  if(error||!p){toast('خطأ','لم يتم العثور على المريض','error');return}
+
+  // ── ملء Header ──
+  const initials=getPtInitials(p.full_name)
+  const color=getPtColor(p.full_name)
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v}
+  const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+
+  setTxt('pp-page-title',p.full_name)
+  setTxt('pp-page-sub',(p.mrn||'—')+' · '+(p.status==='active'?'نشط':p.status==='new'?'جديد':'غير نشط'))
+
+  const av=document.getElementById('pp-avatar')
+  if(av){av.textContent=initials;av.className=`prof-avatar-lg ${color}`}
+
+  setTxt('pp-name',p.full_name)
+  setTxt('pp-mrn',p.mrn||'—')
+  setTxt('pp-age-gender',calcAge(p.date_of_birth)+' · '+(p.gender==='male'?'ذكر':'أنثى'))
+  setTxt('pp-phone',p.phone||'—')
+  setTxt('pp-doctor',p.profiles?.full_name||'—')
+  setTxt('pp-insurance',p.insurance_company||'—')
+
+  // الحالة badge
+  const stMap={active:'badge-success',new:'badge-blue',inactive:'badge-gray',on_leave:'badge-warning'}
+  const stLabel={active:'نشط',new:'جديد',inactive:'غير نشط',on_leave:'في إجازة'}
+  const stBadge=document.getElementById('pp-status-badge')
+  if(stBadge){stBadge.className=`badge ${stMap[p.status]||'badge-gray'}`;stBadge.innerHTML=`<span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;margin-left:4px"></span>${stLabel[p.status]||p.status}`}
+
+  // الحساسيات
+  const allergEl=document.getElementById('pp-allergies')
+  if(allergEl){
+    allergEl.innerHTML=(p.allergies?.length?p.allergies:[]).map(a=>
+      `<div class="prof-allergy" style="background:var(--danger-light);color:var(--danger)">${a}<br/><small style="font-size:10px;opacity:.7">حساسية</small></div>`
+    ).join('')
+  }
+
+  // ── الانتقال للصفحة ──
+  nav('patient-profile')
+
+  // ── تفعيل Tab الأول ──
+  switchProfTab('overview',document.querySelector('.prof-tab'))
+
+  // ── تحميل بيانات التبويبات ──
+  loadProfOverview(p)
+  loadProfVisits(id)
+  loadProfMedications(id)
+  loadProfVitals(id)
+  loadProfInvoices(id)
+  loadProfLab(id)
+  loadProfRadiology(id)
 }
+
+// ── تبديل تبويبات الملف ──
+window.switchProfTab=function(tab,el){
+  document.querySelectorAll('.prof-tab-content').forEach(c=>c.classList.remove('active'))
+  document.querySelectorAll('.prof-tab').forEach(b=>b.classList.remove('active'))
+  const content=document.getElementById('pptab-'+tab)
+  if(content)content.classList.add('active')
+  if(el)el.classList.add('active')
+}
+
+// ── نظرة عامة ──
+function loadProfOverview(p){
+  // التشخيصات — من notes أو من جدول diagnoses إن وجد
+  const diagEl=document.getElementById('pp-diagnoses')
+  if(diagEl){
+    if(p.notes){
+      diagEl.innerHTML=`<div style="font-size:13px;color:var(--text);line-height:1.8;padding:8px 0">${p.notes}</div>`
+    } else {
+      diagEl.innerHTML='<div class="table-empty" style="padding:16px">لا توجد تشخيصات مسجلة</div>'
+    }
+  }
+  // الأدوية الحالية
+  const medsEl=document.getElementById('pp-current-meds')
+  if(medsEl) medsEl.innerHTML='<div class="table-empty" style="padding:16px">جاري التحميل...</div>'
+  // معلومات إضافية
+  const extraEl=document.getElementById('pp-extra-info')
+  if(extraEl){
+    extraEl.innerHTML=`
+      <div class="detail-row"><span class="detail-lbl">الهاتف</span><span class="detail-val">${p.phone||'—'}</span></div>
+      <div class="detail-row"><span class="detail-lbl">البريد</span><span class="detail-val">${p.email||'—'}</span></div>
+      <div class="detail-row"><span class="detail-lbl">العنوان</span><span class="detail-val">${p.address||'—'}</span></div>
+      <div class="detail-row"><span class="detail-lbl">فصيلة الدم</span><span class="detail-val">${p.blood_type||'—'}</span></div>
+      <div class="detail-row"><span class="detail-lbl">التأمين</span><span class="detail-val">${p.insurance_company||'—'}</span></div>`
+  }
+}
+
+// ── الزيارات من appointments ──
+async function loadProfVisits(pid){
+  const{data,error}=await sb.from('appointments')
+    .select('*,profiles!appointments_doctor_id_fkey(full_name),services(name)')
+    .eq('patient_id',pid)
+    .order('scheduled_at',{ascending:false})
+  const tb=document.getElementById('pp-visits-table')
+  if(!tb)return
+  if(error||!data?.length){tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد زيارات</td></tr>';return}
+  const stMap={completed:'badge-success',pending:'badge-warning',cancelled:'badge-danger',confirmed:'badge-info'}
+  const stLabel={completed:'مكتمل',pending:'انتظار',cancelled:'ملغي',confirmed:'مؤكد'}
+  tb.innerHTML=data.map(a=>`<tr>
+    <td>${fdate(a.scheduled_at)}</td>
+    <td>${a.profiles?.full_name||'—'}</td>
+    <td>${a.services?.name||({consultation:'كشف',follow_up:'متابعة',procedure:'إجراء',checkup:'فحص'}[a.type])||'—'}</td>
+    <td>—</td>
+    <td>—</td>
+    <td><span class="badge ${stMap[a.status]||'badge-gray'}">${stLabel[a.status]||a.status}</span></td>
+  </tr>`).join('')
+}
+
+// ── الأدوية من prescription_items ──
+async function loadProfMedications(pid){
+  const{data,error}=await sb.from('prescriptions')
+    .select('*,prescription_items(*)')
+    .eq('patient_id',pid)
+    .order('created_at',{ascending:false})
+  const tb=document.getElementById('pp-meds-table')
+  if(!tb)return
+  if(error||!data?.length){tb.innerHTML='<tr><td colspan="5" class="table-empty">لا توجد وصفات</td></tr>';return}
+  const rows=[]
+  data.forEach(rx=>(rx.prescription_items||[]).forEach(item=>rows.push({...item,rx})))
+  if(!rows.length){tb.innerHTML='<tr><td colspan="5" class="table-empty">لا توجد أدوية</td></tr>';return}
+  tb.innerHTML=rows.map(r=>`<tr>
+    <td><strong>${r.drug_name||'—'}</strong></td>
+    <td>${r.dose||'—'}</td>
+    <td>${r.frequency||'—'}</td>
+    <td>${fdate(r.rx?.created_at)}</td>
+    <td><span class="badge badge-success">نشط</span></td>
+  </tr>`).join('')
+
+  // تحديث الأدوية في overview أيضاً
+  const medsEl=document.getElementById('pp-current-meds')
+  if(medsEl&&rows.length){
+    medsEl.innerHTML=rows.slice(0,4).map(r=>`
+      <div class="detail-row">
+        <span class="detail-lbl">${r.drug_name||'—'} ${r.dose?'· '+r.dose:''}</span>
+        <span class="detail-val"><span class="badge badge-success">نشط</span></span>
+      </div>`).join('')
+  } else if(medsEl){
+    medsEl.innerHTML='<div class="table-empty" style="padding:16px">لا توجد أدوية</div>'
+  }
+}
+
+// ── العلامات الحيوية ──
+async function loadProfVitals(pid){
+  const tb=document.getElementById('pp-vitals-table')
+  const latestEl=document.getElementById('pp-latest-vitals')
+  const dateEl=document.getElementById('pp-vitals-date')
+
+  // محاولة جلب من جدول vitals إن وجد
+  const{data,error}=await sb.from('patient_vitals')
+    .select('*').eq('patient_id',pid)
+    .order('recorded_at',{ascending:false})
+
+  if(error){
+    // الجدول غير موجود — عرض رسالة
+    if(tb) tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد علامات حيوية مسجلة</td></tr>'
+    if(latestEl) latestEl.innerHTML='<div class="table-empty" style="padding:12px">لا توجد بيانات</div>'
+    return
+  }
+  if(!data?.length){
+    if(tb) tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد علامات حيوية مسجلة</td></tr>'
+    if(latestEl) latestEl.innerHTML='<div class="table-empty" style="padding:12px">لا توجد بيانات</div>'
+    return
+  }
+
+  // أحدث سجل
+  const latest=data[0]
+  if(dateEl) dateEl.textContent=fdate(latest.recorded_at)
+  if(latestEl){
+    latestEl.innerHTML=`
+      <div class="detail-row"><span class="detail-lbl">ضغط الدم</span><span class="detail-val" style="font-weight:700;color:var(--danger)">${latest.blood_pressure||'—'}</span></div>
+      <div class="detail-row"><span class="detail-lbl">معدل ضربات القلب</span><span class="detail-val">${latest.heart_rate?latest.heart_rate+' bpm':'—'}</span></div>
+      <div class="detail-row"><span class="detail-lbl">درجة الحرارة</span><span class="detail-val">${latest.temperature?latest.temperature+' °C':'—'}</span></div>
+      <div class="detail-row"><span class="detail-lbl">الوزن</span><span class="detail-val">${latest.weight?latest.weight+' كجم':'—'}</span></div>
+      <div class="detail-row"><span class="detail-lbl">السكر (صيام)</span><span class="detail-val">${latest.blood_sugar?latest.blood_sugar+' mg/dL':'—'}</span></div>`
+  }
+  if(tb){
+    tb.innerHTML=data.map(v=>`<tr>
+      <td>${fdate(v.recorded_at)}</td>
+      <td style="font-weight:600;color:var(--danger)">${v.blood_pressure||'—'}</td>
+      <td>${v.heart_rate||'—'}</td>
+      <td>${v.temperature||'—'}</td>
+      <td>${v.weight?v.weight+' كجم':'—'}</td>
+      <td style="color:var(--warning);font-weight:600">${v.blood_sugar?v.blood_sugar+' mg/dL':'—'}</td>
+    </tr>`).join('')
+  }
+}
+
+// ── الفواتير ──
+async function loadProfInvoices(pid){
+  const{data,error}=await sb.from('invoices')
+    .select('*,invoice_items(description)')
+    .eq('patient_id',pid)
+    .order('created_at',{ascending:false})
+  const tb=document.getElementById('pp-invoices-table')
+  if(!tb)return
+  if(error||!data?.length){tb.innerHTML='<tr><td colspan="5" class="table-empty">لا توجد فواتير</td></tr>';return}
+  const stMap={paid:'badge-success',partial:'badge-warning',draft:'badge-gray',overdue:'badge-danger'}
+  const stLabel={paid:'مدفوع',partial:'جزئي',draft:'مسودة',overdue:'متأخر'}
+  tb.innerHTML=data.map(i=>`<tr>
+    <td><code>${i.invoice_number||'—'}</code></td>
+    <td>${fdate(i.created_at)}</td>
+    <td>${(i.invoice_items||[]).map(x=>x.description).filter(Boolean).join('، ')||'—'}</td>
+    <td style="font-weight:600">${fmoney(i.total)}</td>
+    <td><span class="badge ${stMap[i.status]||'badge-gray'}">${stLabel[i.status]||i.status}</span></td>
+  </tr>`).join('')
+}
+
+// ── المختبر ──
+async function loadProfLab(pid){
+  const{data,error}=await sb.from('lab_orders')
+    .select('*,profiles!lab_orders_doctor_id_fkey(full_name),lab_order_tests(*)')
+    .eq('patient_id',pid)
+    .order('created_at',{ascending:false})
+  const tb=document.getElementById('pp-lab-table')
+  if(!tb)return
+  if(error||!data?.length){tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد طلبات مختبر</td></tr>';return}
+  const stMap={pending:'badge-gray',processing:'badge-warning',ready:'badge-info',completed:'badge-success'}
+  const stLabel={pending:'في الانتظار',processing:'قيد التحليل',ready:'جاهز',completed:'مكتمل'}
+  const prMap={normal:'عادي',urgent:'عاجل',stat:'فوري'}
+  const prCls={normal:'badge-gray',urgent:'badge-warning',stat:'badge-danger'}
+  tb.innerHTML=data.map(l=>{
+    const tests=(l.lab_order_tests||[]).map(t=>t.test_name||t.name||'').filter(Boolean)
+    return`<tr>
+      <td><code>#${l.id?.slice(-6)||'—'}</code></td>
+      <td>${fdate(l.created_at)}</td>
+      <td>${l.profiles?.full_name||'—'}</td>
+      <td>${tests.slice(0,3).map(t=>`<span class="badge badge-blue" style="font-size:10px;margin:1px">${t}</span>`).join('')}${tests.length>3?`<span style="font-size:11px;color:var(--text-muted)">+${tests.length-3}</span>`:''}</td>
+      <td><span class="badge ${prCls[l.priority]||'badge-gray'}">${prMap[l.priority]||'—'}</span></td>
+      <td><span class="badge ${stMap[l.status]||'badge-gray'}">${stLabel[l.status]||l.status}</span></td>
+    </tr>`
+  }).join('')
+}
+
+// ── الأشعة ──
+async function loadProfRadiology(pid){
+  const tb=document.getElementById('pp-radiology-table')
+  if(!tb)return
+  // محاولة جلب من جدول radiology_orders إن وجد
+  const{data,error}=await sb.from('radiology_orders')
+    .select('*,profiles!radiology_orders_doctor_id_fkey(full_name)')
+    .eq('patient_id',pid)
+    .order('created_at',{ascending:false})
+  if(error){
+    tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد طلبات أشعة</td></tr>'
+    return
+  }
+  if(!data?.length){tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد طلبات أشعة</td></tr>';return}
+  const stMap={pending:'badge-gray',completed:'badge-success',processing:'badge-warning'}
+  const stLabel={pending:'في الانتظار',completed:'مكتمل',processing:'قيد التنفيذ'}
+  tb.innerHTML=data.map(r=>`<tr>
+    <td><code>#${r.id?.slice(-6)||'—'}</code></td>
+    <td>${fdate(r.created_at)}</td>
+    <td>${r.profiles?.full_name||'—'}</td>
+    <td>${r.type||r.scan_type||'—'}</td>
+    <td><span class="badge ${stMap[r.status]||'badge-gray'}">${stLabel[r.status]||r.status}</span></td>
+    <td>${r.result||r.notes||'—'}</td>
+  </tr>`).join('')
+}
+
 window.savePatient=async()=>{
   const id=document.getElementById('patient-id').value
   const name=document.getElementById('patient-name').value.trim()
@@ -2419,6 +3166,29 @@ window.setAllPerms=function(val){
   renderPerms(currentRole)
 }
 window.savePerms=function(){toast('تم حفظ الصلاحيات ✅','تم تحديث صلاحيات الدور بنجاح','success')}
+
+// ── saveLabOrderFromProfile ──
+window.saveLabOrderFromProfile=async function(){
+  const pid=document.getElementById('lab-order-patient').value||currentPatientId
+  const did=document.getElementById('lab-order-doctor').value
+  const tests=document.getElementById('lab-order-tests').value.trim()
+  if(!pid){toast('اختر المريض','','warning');return}
+  const{data:lo,error}=await sb.from('lab_orders').insert({
+    organization_id:orgId,patient_id:pid,
+    doctor_id:did||null,
+    priority:document.getElementById('lab-order-priority').value,
+    notes:document.getElementById('lab-order-notes').value,
+    status:'pending'
+  }).select().single()
+  if(error){toast('خطأ',error.message,'error');return}
+  if(tests){
+    const rows=tests.split('\n').filter(t=>t.trim()).map(t=>({lab_order_id:lo.id,test_name:t.trim()}))
+    await sb.from('lab_order_tests').insert(rows)
+  }
+  toast('تم إرسال الطلب','','success')
+  closeModal('modal-lab-order')
+  if(currentPatientId)loadProfLab(currentPatientId)
+}
 
 // Override nav لإضافة loaders الجديدة
 const _origNav=window.nav
@@ -2810,6 +3580,20 @@ window.openModal=id=>{
     document.getElementById('con-beneficiaries').value=0
     document.getElementById('con-coverage').value=80
     document.getElementById('con-status').value='active'
+  }
+  if(id==='modal-lab-order'){
+    ;['lab-order-tests','lab-order-notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})
+    document.getElementById('lab-order-priority').value='normal'
+    ;(async()=>{
+      const[{data:pts},{data:docs}]=await Promise.all([
+        sb.from('patients').select('id,full_name').eq('organization_id',orgId).order('full_name').limit(100),
+        sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
+      ])
+      const ps=document.getElementById('lab-order-patient')
+      const ds=document.getElementById('lab-order-doctor')
+      if(ps) ps.innerHTML='<option value="">— اختر مريض —</option>'+(pts||[]).map(p=>`<option value="${p.id}"${p.id===currentPatientId?' selected':''}>${p.full_name}</option>`).join('')
+      if(ds) ds.innerHTML='<option value="">— اختر طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
+    })()
   }
   _origOpen2(id)
 }
