@@ -127,6 +127,121 @@ body.dark-mode .lab-order-card{background:#162032;border-color:#1E3148}
 .perm-check{width:22px;height:22px;border-radius:5px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0;font-size:12px;background:transparent;user-select:none}
 .perm-check.on{background:var(--primary);border-color:var(--primary);color:#fff}
 @media print{.sidebar,.topbar,.modal-overlay,.toast-wrap{display:none!important}.main-wrap{margin:0!important}}
+
+/* ══ DASHBOARD NEW STYLES ══ */
+.welcome-banner{
+  background:linear-gradient(135deg,var(--primary) 0%,#3A8FCC 100%);
+  border-radius:14px;padding:18px 24px;margin-bottom:20px;
+  color:#fff;display:flex;align-items:center;justify-content:space-between;
+  overflow:hidden;position:relative;
+}
+.welcome-banner::before{
+  content:'';position:absolute;left:-30px;top:-40px;
+  width:180px;height:180px;border-radius:50%;
+  background:rgba(255,255,255,.06);
+}
+.welcome-banner::after{
+  content:'';position:absolute;left:120px;bottom:-60px;
+  width:140px;height:140px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.welcome-title{font-size:17px;font-weight:700;margin-bottom:3px;position:relative;z-index:1}
+.welcome-sub{font-size:13px;opacity:.8;position:relative;z-index:1}
+.welcome-stats{display:flex;gap:0;position:relative;z-index:1}
+.welcome-stat{
+  text-align:center;padding:0 18px;
+  border-right:1px solid rgba(255,255,255,.2);
+}
+.welcome-stat:last-child{border-right:none}
+.welcome-stat-val{font-size:22px;font-weight:800;line-height:1.2}
+.welcome-stat-lbl{font-size:10px;opacity:.75;margin-top:2px}
+
+.quick-strip{
+  display:flex;gap:8px;margin-bottom:20px;
+  overflow-x:auto;padding-bottom:4px;
+}
+.quick-chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 16px;border-radius:30px;
+  background:var(--card);border:1px solid var(--border);
+  font-size:13px;font-weight:500;cursor:pointer;
+  white-space:nowrap;transition:all .15s;
+  box-shadow:var(--shadow);color:var(--text-muted);
+}
+.quick-chip:hover{
+  border-color:var(--primary);color:var(--primary);
+  background:var(--primary-light);
+}
+.quick-chip i{font-size:13px;color:var(--primary)}
+
+/* stat cards الجديدة — أيقونة + badge في الأعلى، قيمة في الأسفل */
+.dash-stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:20px;box-shadow:var(--shadow);
+  transition:transform .15s,box-shadow .15s;
+}
+.dash-stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.dash-stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.dash-stat-icon{
+  width:44px;height:44px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;font-size:19px;
+}
+.dash-stat-change{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;
+}
+.dash-stat-change.up{color:var(--success);background:var(--success-light)}
+.dash-stat-change.down{color:var(--danger);background:var(--danger-light)}
+.dash-stat-val{font-size:26px;font-weight:800;color:var(--text);margin-bottom:3px;line-height:1}
+.dash-stat-lbl{font-size:12px;color:var(--text-muted)}
+.dash-stat-sub{font-size:11px;color:var(--text-light);margin-top:4px}
+.dash-stats-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;margin-bottom:20px;
+}
+@media(max-width:900px){
+  .dash-stats-grid{grid-template-columns:1fr 1fr}
+  .welcome-stats{gap:12px}
+  .welcome-banner{flex-direction:column;gap:14px;align-items:flex-start}
+}
+@media(max-width:540px){
+  .dash-stats-grid{grid-template-columns:1fr}
+}
+
+/* bar chart داشبورد */
+.dash-bar-chart{
+  display:flex;align-items:flex-end;gap:6px;
+  height:100px;padding-top:8px;
+}
+.dash-bar-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.dash-bar-fill{
+  width:100%;border-radius:4px 4px 0 0;
+  background:var(--primary);transition:height .5s;min-width:16px;
+}
+.dash-bar-lbl{font-size:9px;color:var(--text-muted);white-space:nowrap}
+
+/* activity feed */
+.activity-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:9px 0;border-bottom:1px solid var(--border);
+}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{
+  width:8px;height:8px;border-radius:50%;
+  margin-top:4px;flex-shrink:0;
+}
+
+/* doc rank */
+.doc-rank-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 0;border-bottom:1px solid var(--border);
+}
+.doc-rank-item:last-child{border-bottom:none}
+.doc-rank-rev{
+  font-size:13px;font-weight:700;color:var(--primary);
+  min-width:100px;text-align:left;
+}
 </style>
 </head>
 <body>
@@ -258,33 +373,197 @@ body.dark-mode .lab-order-card{background:#162032;border-color:#1E3148}
 
     <!-- ══ DASHBOARD ══ -->
     <div class="page active" id="page-dashboard">
+
+      <!-- Page Header -->
       <div class="page-header">
         <div>
           <div class="page-header-title">لوحة التحكم</div>
-          <div class="page-header-sub" id="dash-date"></div>
+          <div class="page-header-sub">نظرة عامة على أداء العيادة</div>
         </div>
-        <button class="btn btn-primary" onclick="nav('appointments');openModal('modal-appt')">
-          <i class="fa-solid fa-plus"></i> موعد جديد
-        </button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportExcel('invoices')">
+            <i class="fa-solid fa-download"></i> تصدير
+          </button>
+          <button class="btn btn-primary" onclick="openModal('modal-appt')">
+            <i class="fa-solid fa-plus"></i> موعد جديد
+          </button>
+        </div>
       </div>
-      <div class="stats-grid" id="stats-grid">
-        <div class="stat-card"><div class="stat-header"><span class="stat-label">مواعيد اليوم</span><div class="stat-icon" style="background:#EEF2FF;color:#6366F1"><i class="fa-solid fa-calendar-day"></i></div></div><div class="stat-value" id="stat-today">—</div></div>
-        <div class="stat-card"><div class="stat-header"><span class="stat-label">إجمالي المرضى</span><div class="stat-icon" style="background:#D1FAE5;color:#10B981"><i class="fa-solid fa-users"></i></div></div><div class="stat-value" id="stat-patients">—</div></div>
-        <div class="stat-card"><div class="stat-header"><span class="stat-label">إيرادات الشهر</span><div class="stat-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-coins"></i></div></div><div class="stat-value" id="stat-revenue">—</div></div>
-        <div class="stat-card"><div class="stat-header"><span class="stat-label">في الانتظار</span><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fa-solid fa-clock"></i></div></div><div class="stat-value" id="stat-pending">—</div></div>
+
+      <!-- Welcome Banner -->
+      <div class="welcome-banner">
+        <div>
+          <div class="welcome-title">صباح الخير، <span data-user-name>مدير النظام</span> 👋</div>
+          <div class="welcome-sub" id="dash-date">اليوم الأحد — الفرع الرئيسي</div>
+        </div>
+        <div class="welcome-stats">
+          <div class="welcome-stat">
+            <div class="welcome-stat-val" id="dash-w-appts">—</div>
+            <div class="welcome-stat-lbl">موعد اليوم</div>
+          </div>
+          <div class="welcome-stat">
+            <div class="welcome-stat-val" id="dash-w-new">—</div>
+            <div class="welcome-stat-lbl">مرضى جدد</div>
+          </div>
+          <div class="welcome-stat">
+            <div class="welcome-stat-val" id="dash-w-occ">—</div>
+            <div class="welcome-stat-lbl">الإشغال</div>
+          </div>
+        </div>
       </div>
+
+      <!-- Quick Actions Strip -->
+      <div class="quick-strip">
+        <div class="quick-chip" onclick="openModal('modal-appt')">
+          <i class="fa-solid fa-calendar-plus"></i> موعد جديد
+        </div>
+        <div class="quick-chip" onclick="openModal('modal-patient')">
+          <i class="fa-solid fa-user-plus"></i> مريض جديد
+        </div>
+        <div class="quick-chip" onclick="nav('invoices')">
+          <i class="fa-solid fa-file-invoice"></i> الفواتير
+        </div>
+        <div class="quick-chip" onclick="nav('reports')">
+          <i class="fa-solid fa-chart-bar"></i> التقارير
+        </div>
+        <div class="quick-chip" onclick="nav('week-view')">
+          <i class="fa-regular fa-calendar"></i> التقويم
+        </div>
+        <div class="quick-chip" onclick="nav('financial')">
+          <i class="fa-solid fa-chart-pie"></i> التقرير المالي
+        </div>
+      </div>
+
+      <!-- KPI Stats Row 1 -->
+      <div class="dash-stats-grid">
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#EFF6FF;color:#1D4ED8">
+              <i class="fa-solid fa-dollar-sign"></i>
+            </div>
+            <div class="dash-stat-change up" id="dash-rev-change">
+              <i class="fa-solid fa-arrow-trend-up"></i> —
+            </div>
+          </div>
+          <div class="dash-stat-val" id="stat-revenue">—</div>
+          <div class="dash-stat-lbl">إجمالي الإيرادات</div>
+          <div class="dash-stat-sub">مقارنة بالشهر الماضي</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#FEF3C7;color:#D97706">
+              <i class="fa-solid fa-arrow-trend-down"></i>
+            </div>
+            <div class="dash-stat-change down" id="dash-exp-change">
+              <i class="fa-solid fa-arrow-trend-up"></i> —
+            </div>
+          </div>
+          <div class="dash-stat-val" id="stat-expenses">—</div>
+          <div class="dash-stat-lbl">إجمالي المصروفات</div>
+          <div class="dash-stat-sub">مقارنة بالشهر الماضي</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#D1FAE5;color:#065F46">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div class="dash-stat-change up" id="dash-profit-change">
+              <i class="fa-solid fa-arrow-trend-up"></i> —
+            </div>
+          </div>
+          <div class="dash-stat-val" id="stat-profit">—</div>
+          <div class="dash-stat-lbl">صافي الأرباح</div>
+          <div class="dash-stat-sub">مقارنة بالشهر الماضي</div>
+        </div>
+      </div>
+
+      <!-- KPI Stats Row 2 -->
+      <div class="dash-stats-grid">
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#EDE9FE;color:#5B21B6">
+              <i class="fa-solid fa-chart-simple"></i>
+            </div>
+            <div class="dash-stat-change up">3%</div>
+          </div>
+          <div class="dash-stat-val" id="stat-occ">—</div>
+          <div class="dash-stat-lbl">معدل الإشغال</div>
+          <div class="dash-stat-sub">مقارنة بالشهر الماضي</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#E0F2FE;color:#0369A1">
+              <i class="fa-regular fa-calendar-check"></i>
+            </div>
+            <div class="dash-stat-change up" id="dash-appt-change">5%</div>
+          </div>
+          <div class="dash-stat-val" id="stat-appts-month">—</div>
+          <div class="dash-stat-lbl">المواعيد</div>
+          <div class="dash-stat-sub">هذا الشهر</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#FCE7F3;color:#9D174D">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="dash-stat-change up" id="dash-pts-change">8%</div>
+          </div>
+          <div class="dash-stat-val" id="stat-patients">—</div>
+          <div class="dash-stat-lbl">إجمالي المرضى</div>
+          <div class="dash-stat-sub">مقارنة بالشهر الماضي</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+
+        <!-- نظرة على الإيرادات -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">نظرة على الإيرادات</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="badge badge-success" id="dash-rev-badge" style="font-size:11px">
+                <i class="fa-solid fa-arrow-trend-up"></i> —
+              </span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="dash-bar-chart" id="dash-rev-chart">
+              <!-- يُملأ من JS -->
+              <div style="display:flex;align-items:center;justify-content:center;width:100%;color:var(--text-light)">
+                <div class="loading-spin"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- أفضل الأطباء -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">أفضل الأطباء</div>
+            <span class="card-link" onclick="nav('doctors')" style="font-size:12px;color:var(--primary);cursor:pointer;font-weight:500">عرض الكل</span>
+          </div>
+          <div class="card-body" style="padding:8px 20px" id="dash-top-docs">
+            <div style="text-align:center;padding:20px;color:var(--text-light)">
+              <div class="loading-spin"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- النشاط الأخير -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title"><i class="fa-solid fa-calendar-day" style="color:var(--primary)"></i> مواعيد اليوم</span>
-          <button class="btn btn-ghost btn-sm" onclick="nav('week-view')">عرض أسبوعي</button>
+          <div class="card-title">النشاط الأخير</div>
+          <span class="badge badge-blue">مباشر</span>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>المريض</th><th>الطبيب</th><th>الوقت</th><th>النوع</th><th>الحالة</th><th>إجراء</th></tr></thead>
-            <tbody id="today-appts"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
-          </table>
+        <div class="card-body" style="padding:8px 20px" id="dash-activity">
+          <div style="text-align:center;padding:20px;color:var(--text-light)">
+            <div class="loading-spin"></div>
+          </div>
         </div>
       </div>
+
     </div>
 
     <!-- ══ APPOINTMENTS ══ -->
@@ -1236,20 +1515,153 @@ window.nav=function(id){
 // ── Dashboard ──
 async function loadDashboard(){
   const today=new Date().toISOString().slice(0,10)
-  const[{count:tc},{count:pc},{data:rev},{count:wc}]=await Promise.all([
+  const monthStart=new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString()
+  const prevMonthStart=new Date(new Date().getFullYear(),new Date().getMonth()-1,1).toISOString()
+  const prevMonthEnd=new Date(new Date().getFullYear(),new Date().getMonth(),0,23,59,59).toISOString()
+
+  // ── تحديث التاريخ ──
+  const dateEl=document.getElementById('dash-date')
+  if(dateEl) dateEl.textContent=new Date().toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' · الفرع الرئيسي'
+
+  // ── جلب البيانات بالتوازي ──
+  const[
+    {count:todayAppts},
+    {count:totalPatients},
+    {data:revData},
+    {data:prevRevData},
+    {count:monthAppts},
+    {data:newPtsData},
+    {data:prevNewPtsData},
+    {data:todayApptsList},
+    {data:doctors},
+  ]=await Promise.all([
     sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).gte('scheduled_at',today+'T00:00:00').lte('scheduled_at',today+'T23:59:59'),
     sb.from('patients').select('*',{count:'exact',head:true}).eq('organization_id',orgId),
-    sb.from('invoices').select('total').eq('organization_id',orgId).eq('status','paid').gte('created_at',new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString()),
-    sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).eq('status','pending')
+    sb.from('invoices').select('total,paid_amount').eq('organization_id',orgId).gte('created_at',monthStart),
+    sb.from('invoices').select('total,paid_amount').eq('organization_id',orgId).gte('created_at',prevMonthStart).lte('created_at',prevMonthEnd),
+    sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).gte('scheduled_at',monthStart),
+    sb.from('patients').select('id').eq('organization_id',orgId).gte('created_at',monthStart),
+    sb.from('patients').select('id').eq('organization_id',orgId).gte('created_at',prevMonthStart).lte('created_at',prevMonthEnd),
+    sb.from('appointments').select('*,patients(full_name),profiles!appointments_doctor_id_fkey(full_name)').eq('organization_id',orgId).gte('scheduled_at',today+'T00:00:00').lte('scheduled_at',today+'T23:59:59').order('scheduled_at'),
+    sb.from('profiles').select('id,full_name,specialty').eq('organization_id',orgId).eq('role','doctor').limit(5),
   ])
-  document.getElementById('stat-today').textContent=tc||0
-  document.getElementById('stat-patients').textContent=pc||0
-  document.getElementById('stat-revenue').textContent=fmoney((rev||[]).reduce((s,r)=>s+(r.total||0),0))
-  document.getElementById('stat-pending').textContent=wc||0
-  const{data:appts}=await sb.from('appointments').select('*,patients(full_name),profiles!appointments_doctor_id_fkey(full_name)').eq('organization_id',orgId).gte('scheduled_at',today+'T00:00:00').lte('scheduled_at',today+'T23:59:59').order('scheduled_at')
-  const tb=document.getElementById('today-appts')
-  if(!appts?.length){tb.innerHTML='<tr><td colspan="6" class="table-empty">لا توجد مواعيد اليوم</td></tr>';return}
-  tb.innerHTML=appts.map(a=>`<tr><td>${a.patients?.full_name||'—'}</td><td>${a.profiles?.full_name||'—'}</td><td>${ft(a.scheduled_at)}</td><td>${typeLabel[a.type]||a.type}</td><td>${badge(a.status)}</td><td><button class="btn btn-ghost btn-sm btn-icon" onclick="editAppt('${a.id}')"><i class="fa-solid fa-pen"></i></button></td></tr>`).join('')
+
+  // ── حساب الأرقام ──
+  const thisRevenue=(revData||[]).reduce((s,r)=>s+(r.total||0),0)
+  const prevRevenue=(prevRevData||[]).reduce((s,r)=>s+(r.total||0),0)
+  const thisExpenses=(revData||[]).reduce((s,r)=>s+Math.max(0,(r.total||0)-(r.paid_amount||0)),0)
+  const prevExpenses=(prevRevData||[]).reduce((s,r)=>s+Math.max(0,(r.total||0)-(r.paid_amount||0)),0)
+  const thisProfit=(revData||[]).reduce((s,r)=>s+(r.paid_amount||0),0)
+  const prevProfit=(prevRevData||[]).reduce((s,r)=>s+(r.paid_amount||0),0)
+  const newPts=(newPtsData||[]).length
+  const prevNewPts=(prevNewPtsData||[]).length
+
+  const pct=(curr,prev)=>{
+    if(!prev)return''
+    const d=Math.round(((curr-prev)/prev)*100)
+    return(d>=0?'+':'')+d+'%'
+  }
+
+  // ── Welcome Banner ──
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  set('dash-w-appts',todayAppts||0)
+  set('dash-w-new',newPts)
+  // حساب معدل الإشغال تقريبي
+  const occRate=todayAppts>0?Math.min(99,Math.round((todayAppts/20)*100))+'%':'—'
+  set('dash-w-occ',occRate)
+
+  // ── KPI Cards ──
+  set('stat-revenue',fmoney(thisRevenue))
+  set('stat-expenses',fmoney(thisExpenses))
+  set('stat-profit',fmoney(thisProfit))
+  set('stat-patients',totalPatients||0)
+  set('stat-appts-month',monthAppts||0)
+  set('stat-occ',occRate)
+
+  // ── نسب التغيير ──
+  const revChange=pct(thisRevenue,prevRevenue)
+  const revEl=document.getElementById('dash-rev-change')
+  if(revEl&&revChange){revEl.textContent='↑ '+revChange;revEl.className='dash-stat-change up'}
+  const revBadge=document.getElementById('dash-rev-badge')
+  if(revBadge&&revChange){revBadge.innerHTML=`<i class="fa-solid fa-arrow-trend-up"></i> ${fmoney(thisRevenue)}`}
+  const profitEl=document.getElementById('dash-profit-change')
+  if(profitEl&&pct(thisProfit,prevProfit)){profitEl.textContent='↑ '+pct(thisProfit,prevProfit);profitEl.className='dash-stat-change up'}
+  const ptsEl=document.getElementById('dash-pts-change')
+  if(ptsEl&&pct(newPts,prevNewPts)){ptsEl.textContent=(newPts>=prevNewPts?'↑ ':'↓ ')+pct(newPts,prevNewPts)}
+
+  // ── رسم Bar Chart الإيرادات ──
+  await buildDashRevenueChart()
+
+  // ── أفضل الأطباء ──
+  const docsEl=document.getElementById('dash-top-docs')
+  if(docsEl){
+    if(!doctors?.length){
+      docsEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-light)">لا يوجد أطباء</div>'
+    } else {
+      const colors=['avatar-blue','avatar-green','avatar-purple','avatar-amber','avatar-red']
+      docsEl.innerHTML=doctors.map((d,i)=>{
+        const initials=d.full_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
+        return`<div class="doc-rank-item">
+          <div class="avatar avatar-sm ${colors[i%colors.length]}">${initials}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">${d.full_name}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${d.specialty||'طبيب عام'}</div>
+          </div>
+        </div>`
+      }).join('')
+    }
+  }
+
+  // ── النشاط الأخير — مواعيد اليوم ──
+  const actEl=document.getElementById('dash-activity')
+  if(actEl){
+    const activities=[
+      ...((todayApptsList||[]).slice(0,3).map(a=>({
+        dot:'var(--primary)',
+        text:`موعد: ${a.patients?.full_name||'—'} مع ${a.profiles?.full_name||'—'}`,
+        time:ft(a.scheduled_at)
+      }))),
+      {dot:'var(--success)',text:`إجمالي مرضى الشهر: ${newPts} مريض جديد`,time:'هذا الشهر'},
+      {dot:'var(--warning)',text:`إيرادات هذا الشهر: ${fmoney(thisRevenue)}`,time:'هذا الشهر'},
+    ]
+    if(!activities.length){
+      actEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-light)">لا يوجد نشاط اليوم</div>'
+    } else {
+      actEl.innerHTML=activities.map(a=>`
+        <div class="activity-item">
+          <div class="activity-dot" style="background:${a.dot}"></div>
+          <div style="flex:1;font-size:13px;color:var(--text)">${a.text}</div>
+          <div style="font-size:11px;color:var(--text-light);white-space:nowrap">${a.time}</div>
+        </div>`).join('')
+    }
+  }
+}
+
+// ── Bar Chart الإيرادات (آخر 12 شهر) ──
+async function buildDashRevenueChart(){
+  const el=document.getElementById('dash-rev-chart')
+  if(!el)return
+  const months=[]
+  for(let i=11;i>=0;i--){
+    const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);months.push(new Date(d))
+  }
+  const mn=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+  const results=await Promise.all(months.map(m=>
+    sb.from('invoices').select('total').eq('organization_id',orgId)
+      .gte('created_at',new Date(m.getFullYear(),m.getMonth(),1).toISOString())
+      .lte('created_at',new Date(m.getFullYear(),m.getMonth()+1,0,23,59,59).toISOString())
+  ))
+  const totals=results.map(r=>(r.data||[]).reduce((s,i)=>s+(i.total||0),0))
+  const maxVal=Math.max(...totals,1)
+  const lastIdx=totals.length-1
+  el.innerHTML=totals.map((v,i)=>{
+    const pct=Math.round((v/maxVal)*100)
+    const isLast=i===lastIdx
+    return`<div class="dash-bar-col">
+      <div class="dash-bar-fill" style="height:${pct}%;background:${isLast?'var(--primary-dark)':'var(--primary)'}"></div>
+      <span class="dash-bar-lbl">${mn[months[i].getMonth()].slice(0,3)}</span>
+    </div>`
+  }).join('')
 }
 
 // ══════════════════════════════════════════════════════
