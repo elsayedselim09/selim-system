@@ -121,6 +121,25 @@ body.dark-mode .doc-filter-chip{background:#162032;border-color:#1E3148;color:#9
   background:var(--success-light);padding:3px 8px;border-radius:20px;
 }
 @media print{.sidebar,.topbar,.modal-overlay,.toast-wrap{display:none!important}.main-wrap{margin:0!important}}
+
+/* ══ PATIENTS PAGE ══ */
+.pt-filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.pt-filter-tab{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-size:13px;font-weight:500;cursor:pointer;background:var(--card);color:var(--text-muted);transition:all .15s;}
+.pt-filter-tab:hover{border-color:var(--primary);color:var(--primary)}
+.pt-filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pt-filter-tab .pt-tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;font-size:11px;font-weight:700;background:rgba(255,255,255,.25);}
+.pt-filter-tab:not(.active) .pt-tab-count{background:var(--border);color:var(--text-muted)}
+.pt-search-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.pt-search-wrap{flex:1;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;max-width:420px;transition:border-color .15s;}
+.pt-search-wrap:focus-within{border-color:var(--primary)}
+.pt-search-wrap input{border:none;outline:none;background:transparent;font-size:13px;color:var(--text);flex:1;font-family:var(--font);}
+.pt-search-wrap i{color:var(--text-light);font-size:13px}
+.av-blue{background:#DBEAFE;color:#1D4ED8}
+.av-green{background:#D1FAE5;color:#065F46}
+.av-purple{background:#EDE9FE;color:#5B21B6}
+.av-amber{background:#FEF3C7;color:#92400E}
+.av-pink{background:#FCE7F3;color:#9D174D}
+.av-red{background:#FEE2E2;color:#991B1B}
 </style>
 </head>
 <body>
@@ -453,17 +472,57 @@ body.dark-mode .doc-filter-chip{background:#162032;border-color:#1E3148;color:#9
     <!-- ══ PATIENTS ══ -->
     <div class="page" id="page-patients">
       <div class="page-header">
-        <div><div class="page-header-title">المرضى</div><div class="page-header-sub" id="r-pts-count"></div></div>
-        <button class="btn btn-primary" onclick="openModal('modal-patient')"><i class="fa-solid fa-plus"></i> مريض جديد</button>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="search-bar" style="max-width:280px"><i class="fa-solid fa-search"></i><input class="form-control" id="r-pts-search" placeholder="بحث بالاسم أو الرقم الطبي..." oninput="filterRPts()"/></div>
+        <div>
+          <div class="page-header-title">
+            <i class="fa-solid fa-users" style="color:var(--primary);margin-left:8px"></i>المرضى
+          </div>
         </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="openModal('modal-patient')">
+            <i class="fa-solid fa-user-plus"></i> مريض جديد
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="pt-filter-tabs" id="pt-filter-tabs">
+        <button class="pt-filter-tab active" data-filter="all" onclick="switchPatientFilter('all',this)">
+          الكل <span class="pt-tab-count" id="pt-count-all">0</span>
+        </button>
+        <button class="pt-filter-tab" data-filter="new" onclick="switchPatientFilter('new',this)">
+          جديد <span class="pt-tab-count" id="pt-count-new">0</span>
+        </button>
+      </div>
+
+      <!-- Search Row -->
+      <div class="pt-search-row">
+        <div class="pt-search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input placeholder="بحث بالاسم الرقم أو الهاتف..." id="patient-search" oninput="filterPatients()"/>
+        </div>
+        <button class="btn btn-ghost btn-sm">
+          <i class="fa-solid fa-filter"></i> تصفية
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>الرقم الطبي</th><th>المريض</th><th>الهاتف</th><th>الجنس</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-            <tbody id="r-pts-table"><tr><td colspan="6" class="table-empty"><div class="loading-spin"></div></td></tr></tbody>
+            <thead>
+              <tr>
+                <th>المريض</th>
+                <th>رقم الملف</th>
+                <th>العمر / الجنس</th>
+                <th>الطبيب المعالج</th>
+                <th>آخر زيارة</th>
+                <th>الحالة</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="patients-table">
+              <tr><td colspan="7" class="table-empty"><div class="loading-spin"></div></td></tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -567,18 +626,37 @@ body.dark-mode .doc-filter-chip{background:#162032;border-color:#1E3148;color:#9
 
 <div class="modal-overlay" id="modal-patient">
   <div class="modal modal-lg">
-    <div class="modal-header"><span class="modal-title">مريض جديد</span><button class="modal-close" onclick="closeModal('modal-patient')"><i class="fa-solid fa-xmark"></i></button></div>
-    <div class="modal-body">
-      <div class="form-grid form-grid-2">
-        <div class="form-group"><label class="form-label">الاسم الكامل *</label><input type="text" class="form-control" id="np-name"/></div>
-        <div class="form-group"><label class="form-label">الجنس</label><select class="form-control" id="np-gender"><option value="male">ذكر</option><option value="female">أنثى</option></select></div>
-        <div class="form-group"><label class="form-label">الهاتف</label><input type="tel" class="form-control" id="np-phone"/></div>
-        <div class="form-group"><label class="form-label">تاريخ الميلاد</label><input type="date" class="form-control" id="np-dob"/></div>
-        <div class="form-group"><label class="form-label">الطبيب المعالج</label><select class="form-control" id="np-doctor"></select></div>
-        <div class="form-group"><label class="form-label">التأمين</label><input type="text" class="form-control" id="np-insurance"/></div>
-      </div>
+    <div class="modal-header">
+      <span class="modal-title" id="patient-modal-title">مريض جديد</span>
+      <button class="modal-close" onclick="closeModal('modal-patient')"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-patient')">إلغاء</button><button class="btn btn-primary" onclick="saveNewPatient()"><i class="fa-solid fa-check"></i> حفظ</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="patient-id"/>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label class="form-label">الاسم الكامل *</label><input type="text" class="form-control" id="patient-name" required/></div>
+        <div class="form-group"><label class="form-label">الجنس</label>
+          <select class="form-control" id="patient-gender"><option value="male">ذكر</option><option value="female">أنثى</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">تاريخ الميلاد</label><input type="date" class="form-control" id="patient-dob"/></div>
+        <div class="form-group"><label class="form-label">الهاتف</label><input type="tel" class="form-control" id="patient-phone"/></div>
+        <div class="form-group"><label class="form-label">البريد الإلكتروني</label><input type="email" class="form-control" id="patient-email"/></div>
+        <div class="form-group"><label class="form-label">فصيلة الدم</label>
+          <select class="form-control" id="patient-blood">
+            <option value="">غير محدد</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">الطبيب المعالج</label><select class="form-control" id="patient-doctor"></select></div>
+        <div class="form-group"><label class="form-label">شركة التأمين</label><input type="text" class="form-control" id="patient-insurance"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">العنوان</label><input type="text" class="form-control" id="patient-address"/></div>
+      <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-control" id="patient-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-patient')">إلغاء</button>
+      <button class="btn btn-primary" onclick="savePatient()"><i class="fa-solid fa-check"></i> حفظ</button>
+    </div>
   </div>
 </div>
 
@@ -1117,36 +1195,141 @@ document.getElementById('rem-template')?.addEventListener('input',function(){
 
 // ── Patients ──
 async function loadPatients(){
-  const{data}=await sb.from('patients').select('*').eq('organization_id',orgId).order('created_at',{ascending:false})
+  const{data,error}=await sb.from('patients')
+    .select('*,profiles!patients_assigned_doctor_id_fkey(full_name)')
+    .eq('organization_id',orgId)
+    .order('created_at',{ascending:false})
+  if(error){toast('خطأ في تحميل المرضى',error.message,'error');return}
   allPts=data||[]
-  document.getElementById('r-pts-count').textContent=`${allPts.length} مريض`
-  renderPts(allPts)
+
+  // تحديث العدادات
+  const allCount=allPts.length
+  const newCount=allPts.filter(p=>p.status==='new').length
+  const setCount=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  setCount('pt-count-all',allCount)
+  setCount('pt-count-new',newCount)
+
+  applyPatientFilter()
+
+  // تحميل الأطباء للـ modal
   const{data:docs}=await sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
-  document.getElementById('np-doctor').innerHTML='<option value="">— بلا طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
+  const sel=document.getElementById('patient-doctor')
+  if(sel) sel.innerHTML='<option value="">— بلا طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
 }
-function renderPts(data){
-  const tb=document.getElementById('r-pts-table')
-  tb.innerHTML=data.map(p=>`<tr>
-    <td><code>${p.mrn}</code></td><td>${p.full_name}</td>
-    <td>${p.phone||'—'}</td><td>${p.gender==='male'?'ذكر':'أنثى'}</td>
-    <td>${badge(p.status)}</td>
-    <td><button class="btn btn-ghost btn-sm" onclick="goToPOS('${p.id}','')"><i class="fa-solid fa-file-invoice-dollar"></i> فاتورة</button></td>
-  </tr>`).join('')||'<tr><td colspan="6" class="table-empty">لا يوجد مرضى</td></tr>'
+
+let ptActiveFilter='all'
+function applyPatientFilter(){
+  const q=(document.getElementById('patient-search')?.value||'').toLowerCase()
+  let data=allPts
+  if(ptActiveFilter==='new') data=data.filter(p=>p.status==='new')
+  if(q) data=data.filter(p=>(p.full_name||'').toLowerCase().includes(q)||(p.mrn||'').includes(q)||(p.phone||'').includes(q))
+  renderPatients(data)
 }
-window.filterRPts=()=>{
-  const s=document.getElementById('r-pts-search').value.toLowerCase()
-  renderPts(allPts.filter(p=>(p.full_name||'').toLowerCase().includes(s)||(p.mrn||'').includes(s)))
+
+window.switchPatientFilter=function(filter,el){
+  ptActiveFilter=filter
+  document.querySelectorAll('.pt-filter-tab').forEach(b=>b.classList.remove('active'))
+  el.classList.add('active')
+  applyPatientFilter()
 }
-window.saveNewPatient=async()=>{
-  const name=document.getElementById('np-name').value.trim()
+
+window.filterPatients=function(){applyPatientFilter()}
+
+const PT_COLORS=['av-blue','av-green','av-purple','av-amber','av-pink','av-red']
+function getPtColor(str=''){let h=0;for(const c of str)h+=c.charCodeAt(0);return PT_COLORS[h%PT_COLORS.length]}
+function getPtInitials(name=''){return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+function fdate(d){return d?new Date(d).toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'}):'—'}
+function calcAge(dob){if(!dob)return'—';return Math.floor((Date.now()-new Date(dob))/(365.25*864e5))+' سنة'}
+
+function renderPatients(data){
+  const tb=document.getElementById('patients-table')
+  if(!tb)return
+  if(!data.length){
+    tb.innerHTML='<tr><td colspan="7" class="table-empty">لا يوجد مرضى</td></tr>'
+    return
+  }
+  const statusMap={
+    active:{label:'نشط',cls:'badge-success'},
+    new:{label:'جديد',cls:'badge-blue'},
+    inactive:{label:'غير نشط',cls:'badge-gray'},
+    on_leave:{label:'في إجازة',cls:'badge-warning'},
+  }
+  tb.innerHTML=data.map(p=>{
+    const initials=getPtInitials(p.full_name)
+    const color=getPtColor(p.full_name)
+    const st=statusMap[p.status]||{label:p.status||'—',cls:'badge-gray'}
+    const age=calcAge(p.date_of_birth)
+    const gender=p.gender==='male'?'ذكر':'أنثى'
+    const lastVisit=fdate(p.updated_at||p.created_at)
+    return`<tr style="cursor:pointer" onclick="goToPOS('${p.id}','')">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar avatar-sm ${color}">${initials}</div>
+          <div>
+            <div style="font-weight:600;font-size:13px">${p.full_name}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${p.mrn||'—'}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="badge badge-blue" style="font-size:10px;font-family:monospace">${p.mrn||'—'}</span></td>
+      <td style="font-size:13px">${age} · ${gender}</td>
+      <td style="font-size:13px">${p.profiles?.full_name||'—'}</td>
+      <td style="font-size:13px">${lastVisit}</td>
+      <td>
+        <span class="badge ${st.cls}">
+          <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;margin-left:4px"></span>
+          ${st.label}
+        </span>
+      </td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="goToPOS('${p.id}','')" title="فاتورة">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+        </button>
+      </td>
+    </tr>`
+  }).join('')
+}
+
+window.savePatient=async()=>{
+  const id=document.getElementById('patient-id').value
+  const name=document.getElementById('patient-name').value.trim()
   if(!name){toast('الاسم مطلوب','','warning');return}
-  const{data:last}=await sb.from('patients').select('mrn').eq('organization_id',orgId).order('created_at',{ascending:false}).limit(1)
-  const n=(last?.[0]?.mrn?.split('-').pop()||999)
-  const mrn=`MRN-${new Date().getFullYear()}-${String(+n+1).padStart(4,'0')}`
-  const{error}=await sb.from('patients').insert({full_name:name,gender:document.getElementById('np-gender').value,phone:document.getElementById('np-phone').value,date_of_birth:document.getElementById('np-dob').value||null,assigned_doctor_id:document.getElementById('np-doctor').value||null,insurance_company:document.getElementById('np-insurance').value,organization_id:orgId,mrn,status:'new'})
+  const row={
+    full_name:name,
+    gender:document.getElementById('patient-gender').value,
+    date_of_birth:document.getElementById('patient-dob').value||null,
+    phone:document.getElementById('patient-phone').value,
+    email:document.getElementById('patient-email').value,
+    blood_type:document.getElementById('patient-blood').value||null,
+    assigned_doctor_id:document.getElementById('patient-doctor').value||null,
+    insurance_company:document.getElementById('patient-insurance').value,
+    address:document.getElementById('patient-address').value,
+    notes:document.getElementById('patient-notes').value,
+    organization_id:orgId,
+    status:'active'
+  }
+  if(!id){
+    const{data:last}=await sb.from('patients').select('mrn').eq('organization_id',orgId).order('created_at',{ascending:false}).limit(1)
+    const n=(last?.[0]?.mrn?.split('-').pop()||999)
+    row.mrn=`MRN-${new Date().getFullYear()}-${String(+n+1).padStart(4,'0')}`
+  }
+  const{error}=id
+    ?await sb.from('patients').update(row).eq('id',id)
+    :await sb.from('patients').insert(row)
   if(error){toast('خطأ',error.message,'error');return}
-  toast('تمت إضافة المريض','','success');closeModal('modal-patient');loadPatients()
+  toast(id?'تم التحديث':'تمت الإضافة المريض','','success')
+  closeModal('modal-patient')
+  loadPatients()
 }
+
+// إعادة ضبط المودال عند الفتح
+document.getElementById('modal-patient')?.addEventListener('click',function(e){
+  if(e.target===this){
+    document.getElementById('patient-id').value=''
+    document.getElementById('patient-modal-title').textContent='مريض جديد'
+    ;['patient-name','patient-dob','patient-phone','patient-email','patient-insurance','patient-address','patient-notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})
+  }
+})
 
 // ── New Appointment ──
 async function loadApptSelects(){
