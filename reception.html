@@ -528,6 +528,71 @@ body.dark-mode .doc-filter-chip{background:#162032;border-color:#1E3148;color:#9
       </div>
     </div>
 
+    <!-- ══ PATIENT PROFILE ══ -->
+    <div class="page" id="page-patient-profile">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-ghost btn-sm" onclick="nav('patients')">
+            <i class="fa-solid fa-arrow-right"></i> رجوع
+          </button>
+          <div class="page-header-title" id="pp-title">ملف المريض</div>
+        </div>
+        <button class="btn btn-primary" id="pp-pos-btn" onclick="">
+          <i class="fa-solid fa-file-invoice-dollar"></i> فاتورة زيارة
+        </button>
+      </div>
+
+      <!-- بيانات أساسية -->
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:16px;padding:20px;border-bottom:1px solid var(--border)">
+          <div class="avatar avatar-md av-blue" id="pp-avatar" style="width:52px;height:52px;border-radius:14px;font-size:18px;font-weight:700;flex-shrink:0"></div>
+          <div style="flex:1">
+            <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px" id="pp-name">—</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text-muted)">
+              <span id="pp-mrn"></span>
+              <span id="pp-age-gender"></span>
+              <span id="pp-status-badge"></span>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0">
+          <div style="padding:14px 20px;border-bottom:1px solid var(--border);border-left:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">الهاتف</div>
+            <div style="font-size:13px;font-weight:500" id="pp-phone">—</div>
+          </div>
+          <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">البريد الإلكتروني</div>
+            <div style="font-size:13px;font-weight:500" id="pp-email">—</div>
+          </div>
+          <div style="padding:14px 20px;border-left:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">الطبيب المعالج</div>
+            <div style="font-size:13px;font-weight:500" id="pp-doctor">—</div>
+          </div>
+          <div style="padding:14px 20px">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">التأمين</div>
+            <div style="font-size:13px;font-weight:500" id="pp-insurance">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- آخر المواعيد -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">آخر المواعيد</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>التاريخ</th><th>الطبيب</th><th>النوع</th><th>الحالة</th></tr>
+            </thead>
+            <tbody id="pp-appts-table">
+              <tr><td colspan="4" class="table-empty"><div class="loading-spin"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ POS ══ -->
     <div class="page" id="page-pos">
       <div class="page-header"><div class="page-header-title">فاتورة زيارة</div></div>
@@ -770,7 +835,7 @@ document.getElementById('topbar-date').textContent=now.toLocaleDateString('ar-EG
 
 // ── Helpers ──
 const typeLabel={consultation:'كشف',follow_up:'متابعة',procedure:'إجراء',checkup:'فحص'}
-const titles={today:'مواعيد اليوم',appointments:'كل المواعيد','week-view':'العرض الأسبوعي',reminders:'تذكير المرضى',patients:'المرضى',pos:'فاتورة زيارة',invoices:'الفواتير'}
+const titles={today:'مواعيد اليوم',appointments:'كل المواعيد','week-view':'العرض الأسبوعي',reminders:'تذكير المرضى',patients:'المرضى','patient-profile':'ملف المريض',pos:'فاتورة زيارة',invoices:'الفواتير'}
 window.openModal=id=>document.getElementById(id)?.classList.add('open')
 window.closeModal=id=>document.getElementById(id)?.classList.remove('open')
 window.doSignOut=async()=>{await sb.auth.signOut();location.href='login.html'}
@@ -1261,7 +1326,7 @@ function renderPatients(data){
     const age=calcAge(p.date_of_birth)
     const gender=p.gender==='male'?'ذكر':'أنثى'
     const lastVisit=fdate(p.updated_at||p.created_at)
-    return`<tr style="cursor:pointer" onclick="goToPOS('${p.id}','')">
+    return`<tr style="cursor:pointer" onclick="openPatientProfile('${p.id}')">
       <td>
         <div style="display:flex;align-items:center;gap:10px">
           <div class="avatar avatar-sm ${color}">${initials}</div>
@@ -1322,7 +1387,58 @@ window.savePatient=async()=>{
   loadPatients()
 }
 
-// إعادة ضبط المودال عند الفتح
+// ── فتح ملف المريض ──
+window.openPatientProfile=async function(id){
+  if(!id)return
+  nav('patient-profile')
+
+  // تحميل بيانات المريض
+  const{data:p,error}=await sb.from('patients')
+    .select('*,profiles!patients_assigned_doctor_id_fkey(full_name)')
+    .eq('id',id).single()
+  if(error||!p){toast('خطأ','لم يتم العثور على المريض','error');return}
+
+  // تحديث الـ header
+  const initials=getPtInitials(p.full_name)
+  const color=getPtColor(p.full_name)
+  const av=document.getElementById('pp-avatar')
+  if(av){av.textContent=initials;av.className=`avatar avatar-md ${color}`;av.style.cssText='width:52px;height:52px;border-radius:14px;font-size:18px;font-weight:700;flex-shrink:0'}
+
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v||'—'}
+  set('pp-title',p.full_name)
+  set('pp-name',p.full_name)
+  set('pp-mrn',p.mrn||'')
+  set('pp-age-gender',(calcAge(p.date_of_birth)||'')+(p.gender?' · '+(p.gender==='male'?'ذكر':'أنثى'):''))
+  set('pp-phone',p.phone)
+  set('pp-email',p.email)
+  set('pp-doctor',p.profiles?.full_name)
+  set('pp-insurance',p.insurance_company)
+
+  const stMap={active:{label:'نشط',cls:'badge-success'},new:{label:'جديد',cls:'badge-blue'},inactive:{label:'غير نشط',cls:'badge-gray'},on_leave:{label:'في إجازة',cls:'badge-warning'}}
+  const st=stMap[p.status]||{label:p.status||'—',cls:'badge-gray'}
+  const sb_el=document.getElementById('pp-status-badge')
+  if(sb_el)sb_el.innerHTML=`<span class="badge ${st.cls}">${st.label}</span>`
+
+  // زر الفاتورة
+  const posBtn=document.getElementById('pp-pos-btn')
+  if(posBtn)posBtn.onclick=()=>goToPOS(id,'')
+
+  // تحميل آخر المواعيد
+  const{data:appts}=await sb.from('appointments')
+    .select('*,profiles!appointments_doctor_id_fkey(full_name)')
+    .eq('patient_id',id)
+    .order('scheduled_at',{ascending:false})
+    .limit(10)
+  const tb=document.getElementById('pp-appts-table')
+  if(!tb)return
+  if(!appts?.length){tb.innerHTML='<tr><td colspan="4" class="table-empty">لا توجد مواعيد</td></tr>';return}
+  tb.innerHTML=appts.map(a=>`<tr>
+    <td style="font-size:13px">${fdate(a.scheduled_at)}</td>
+    <td style="font-size:13px">${a.profiles?.full_name||'—'}</td>
+    <td style="font-size:13px">${typeLabel[a.type]||a.type||'—'}</td>
+    <td>${badge(a.status)}</td>
+  </tr>`).join('')
+}
 document.getElementById('modal-patient')?.addEventListener('click',function(e){
   if(e.target===this){
     document.getElementById('patient-id').value=''
