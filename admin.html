@@ -128,6 +128,78 @@ body.dark-mode .lab-order-card{background:#162032;border-color:#1E3148}
 .perm-check.on{background:var(--primary);border-color:var(--primary);color:#fff}
 @media print{.sidebar,.topbar,.modal-overlay,.toast-wrap{display:none!important}.main-wrap{margin:0!important}}
 
+/* ══ DOCTORS PAGE ══ */
+.doc-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:18px;box-shadow:var(--shadow);
+  cursor:pointer;transition:all .2s;
+}
+.doc-card:hover{border-color:var(--primary);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.doc-card-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.doc-rating{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:#F59E0B}
+.doc-stats-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  margin-top:12px;border-top:1px solid var(--border);padding-top:12px;
+}
+.doc-stat-item{text-align:center}
+.doc-stat-val{font-size:15px;font-weight:800;color:var(--primary)}
+.doc-stat-lbl{font-size:10px;color:var(--text-muted);margin-top:2px}
+
+/* doc search */
+.doc-search-wrap{
+  display:flex;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:8px 14px;
+  transition:border-color .15s;margin-bottom:16px;
+  max-width:400px;
+}
+.doc-search-wrap:focus-within{border-color:var(--primary)}
+.doc-search-wrap input{
+  border:none;outline:none;background:transparent;
+  font-size:13px;color:var(--text);flex:1;font-family:var(--font);
+}
+.doc-search-wrap i{color:var(--text-light);font-size:13px}
+
+/* ══ DOCTOR PROFILE ══ */
+.doc-prof-header{
+  display:flex;align-items:flex-start;gap:16px;
+  padding:20px;border-bottom:1px solid var(--border);
+}
+.doc-prof-avatar{
+  width:60px;height:60px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:800;flex-shrink:0;
+}
+.doc-prof-info{flex:1}
+.doc-prof-name{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}
+.doc-prof-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);margin-bottom:8px}
+.doc-prof-contacts{display:flex;gap:16px;flex-wrap:wrap}
+.doc-prof-contact{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:5px}
+.doc-perf-badge{
+  padding:10px 16px;border-radius:10px;text-align:center;min-width:80px;
+}
+.doc-perf-val{font-size:20px;font-weight:800}
+.doc-perf-lbl{font-size:10px;margin-top:2px}
+
+/* doc schedule */
+.doc-schedule-row{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 0;border-bottom:1px solid var(--border);
+}
+.doc-schedule-row:last-child{border-bottom:none}
+.doc-schedule-day{font-size:13px;font-weight:500;width:70px;flex-shrink:0}
+.doc-schedule-time{font-size:12px;color:var(--text-muted);flex:1}
+.doc-avail-tag{
+  font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;
+}
+.doc-avail-on{background:var(--success-light);color:var(--success)}
+.doc-avail-off{background:var(--danger-light);color:var(--danger)}
+
+/* dark mode */
+body.dark-mode .doc-card{background:#162032;border-color:#1E3148}
+body.dark-mode .doc-search-wrap{background:#162032;border-color:#1E3148}
+body.dark-mode .doc-search-wrap input{color:#E2E8F0}
+
 /* ══ PATIENTS PAGE ══ */
 .pt-filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 .pt-filter-tab{
@@ -1024,17 +1096,213 @@ body.dark-mode .pt-filter-tab{background:#162032;border-color:#1E3148}
       </div>
 
     </div>
+    <!-- ══ DOCTORS ══ -->
     <div class="page" id="page-doctors">
       <div class="page-header">
-        <div><div class="page-header-title">الأطباء</div></div>
-        <button class="btn btn-primary" onclick="openModal('modal-employee')"><i class="fa-solid fa-plus"></i> إضافة طبيب</button>
+        <div>
+          <div class="page-header-title">
+            <i class="fa-solid fa-user-doctor" style="color:var(--primary);margin-left:8px"></i>الأطباء
+          </div>
+          <div class="page-header-sub">إدارة الفريق الطبي</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportExcel('employees')">
+            <i class="fa-solid fa-download"></i> تصدير
+          </button>
+          <button class="btn btn-primary" onclick="openModal('modal-employee')">
+            <i class="fa-solid fa-plus"></i> إضافة طبيب
+          </button>
+        </div>
       </div>
-      <div id="doctors-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
-        <div class="card" style="padding:24px;text-align:center"><div class="loading-spin"></div></div>
+
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fa-solid fa-coins"></i></div>
+          </div>
+          <div class="dash-stat-val" id="doc-stat-rev">—</div>
+          <div class="dash-stat-lbl">إيرادات الشهر</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fa-solid fa-users"></i></div>
+          </div>
+          <div class="dash-stat-val" id="doc-stat-pts">—</div>
+          <div class="dash-stat-lbl">إجمالي المرضى</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fa-solid fa-user-slash"></i></div>
+          </div>
+          <div class="dash-stat-val" id="doc-stat-absent">—</div>
+          <div class="dash-stat-lbl">الأطباء المتغيبون</div>
+        </div>
+        <div class="dash-stat-card">
+          <div class="dash-stat-top">
+            <div class="dash-stat-icon" style="background:#DBEAFE;color:#1D4ED8"><i class="fa-solid fa-user-doctor"></i></div>
+          </div>
+          <div class="dash-stat-val" id="doc-stat-total">—</div>
+          <div class="dash-stat-lbl">إجمالي الأطباء</div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="doc-search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input placeholder="بحث بالاسم الرقم التخصص..." id="doc-search" oninput="filterDoctors()"/>
+      </div>
+
+      <!-- Cards Grid -->
+      <div id="doctors-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div class="card" style="padding:24px;text-align:center;grid-column:1/-1">
+          <div class="loading-spin"></div>
+        </div>
       </div>
     </div>
 
-    <!-- ══ EMPLOYEES ══ -->
+    <!-- ══ DOCTOR PROFILE ══ -->
+    <div class="page" id="page-doctor-profile">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-ghost btn-sm" onclick="nav('doctors')">
+            <i class="fa-solid fa-arrow-right"></i> العودة
+          </button>
+          <div>
+            <div class="page-header-title" id="dp-page-title">ملف الطبيب</div>
+            <div class="page-header-sub" id="dp-page-sub">التخصص · الخبرة</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-employee')">
+          <i class="fa-solid fa-pen"></i> تعديل
+        </button>
+      </div>
+
+      <!-- Profile Card -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="doc-prof-header">
+          <!-- Avatar + Info -->
+          <div class="doc-prof-avatar av-blue" id="dp-avatar">SA</div>
+          <div class="doc-prof-info">
+            <div class="doc-prof-name" id="dp-name">—</div>
+            <div class="doc-prof-meta">
+              <span id="dp-specialty">—</span>
+              <span style="color:var(--border)">·</span>
+              <span class="badge badge-success" id="dp-status"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;margin-left:4px"></span>نشط</span>
+            </div>
+            <div class="doc-prof-contacts">
+              <div class="doc-prof-contact"><i class="fa-solid fa-phone" style="color:var(--primary)"></i><span id="dp-phone">—</span></div>
+              <div class="doc-prof-contact"><i class="fa-solid fa-envelope" style="color:var(--primary)"></i><span id="dp-email">—</span></div>
+              <div class="doc-prof-contact"><i class="fa-solid fa-star" style="color:#F59E0B"></i><span id="dp-rating">—</span></div>
+            </div>
+          </div>
+          <!-- Performance badges -->
+          <div style="display:flex;gap:10px;flex-shrink:0">
+            <div class="doc-perf-badge" style="background:var(--success-light)">
+              <div class="doc-perf-val" style="color:var(--success)" id="dp-attend">—</div>
+              <div class="doc-perf-lbl" style="color:var(--success)">الحضور</div>
+            </div>
+            <div class="doc-perf-badge" style="background:var(--primary-light)">
+              <div class="doc-perf-val" style="color:var(--primary)" id="dp-satisfaction">—</div>
+              <div class="doc-perf-lbl" style="color:var(--primary)">رضا المرضى</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="prof-tabs" id="dp-tabs">
+          <button class="prof-tab active" onclick="switchDpTab('overview',this)">نظرة عامة</button>
+          <button class="prof-tab" onclick="switchDpTab('schedule',this)">الجدول</button>
+          <button class="prof-tab" onclick="switchDpTab('patients',this)">المرضى</button>
+          <button class="prof-tab" onclick="switchDpTab('revenue',this)">الإيرادات</button>
+        </div>
+      </div>
+
+      <!-- Tab: نظرة عامة -->
+      <div class="prof-tab-content active" id="dptab-overview">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <!-- المعلومات الشخصية -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">المعلومات الشخصية</div></div>
+            <div class="card-body" style="padding:8px 20px" id="dp-personal-info">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+          </div>
+          <!-- المؤهلات والترخيص -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">المؤهلات والترخيص</div></div>
+            <div class="card-body" style="padding:8px 20px" id="dp-qualifications">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <!-- ملخص الأداء -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">ملخص الأداء</div></div>
+            <div class="card-body" style="padding:8px 20px" id="dp-performance">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+          </div>
+          <!-- آخر المرضى -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">آخر المرضى</div></div>
+            <div class="card-body" style="padding:8px 20px" id="dp-recent-patients">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: الجدول -->
+      <div class="prof-tab-content" id="dptab-schedule">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">الجدول الأسبوعي</div>
+            <button class="btn btn-ghost btn-sm"><i class="fa-solid fa-pen"></i> تعديل</button>
+          </div>
+          <div class="card-body" style="padding:8px 20px" id="dp-schedule-body">
+            <div class="table-empty"><div class="loading-spin"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: المرضى -->
+      <div class="prof-tab-content" id="dptab-patients">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title" id="dp-pts-title">مرضى الطبيب</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>المريض</th><th>التشخيص</th><th>آخر زيارة</th><th>الحالة</th></tr></thead>
+              <tbody id="dp-patients-table">
+                <tr><td colspan="4" class="table-empty"><div class="loading-spin"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: الإيرادات -->
+      <div class="prof-tab-content" id="dptab-revenue">
+        <div class="card">
+          <div class="card-header"><div class="card-title">الإيرادات الشهرية</div></div>
+          <div class="card-body">
+            <!-- KPI row -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px" id="dp-rev-kpis">
+              <div class="table-empty"><div class="loading-spin"></div></div>
+            </div>
+            <!-- Bar Chart -->
+            <div class="dash-bar-chart" id="dp-rev-chart" style="height:120px">
+              <div style="display:flex;align-items:center;justify-content:center;width:100%">
+                <div class="loading-spin"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="page" id="page-employees">
       <div class="page-header">
         <div><div class="page-header-title">الموظفون</div></div>
@@ -1890,14 +2158,14 @@ function badge(s){
 const typeLabel={consultation:'كشف',follow_up:'متابعة',procedure:'إجراء',checkup:'فحص'}
 
 // ── Navigation ──
-const titles={dashboard:'لوحة التحكم','week-view':'العرض الأسبوعي',appointments:'المواعيد',patients:'المرضى','patient-profile':'ملف المريض',doctors:'الأطباء',employees:'الموظفون',invoices:'الفواتير',inventory:'المخزون',branches:'الفروع',reports:'التقارير',settings:'الإعدادات'}
+const titles={dashboard:'لوحة التحكم','week-view':'العرض الأسبوعي',appointments:'المواعيد',patients:'المرضى','patient-profile':'ملف المريض',doctors:'الأطباء','doctor-profile':'ملف الطبيب',employees:'الموظفون',invoices:'الفواتير',inventory:'المخزون',branches:'الفروع',reports:'التقارير',settings:'الإعدادات'}
 window.nav=function(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'))
   document.getElementById('page-'+id)?.classList.add('active')
   document.getElementById('nav-'+id)?.classList.add('active')
   document.getElementById('topbar-title').textContent=titles[id]||''
-  const loaders={appointments:loadAppts,patients:loadPatients,'patient-profile':()=>{},doctors:loadDoctors,employees:loadEmployeesWithEdit,invoices:loadInvoices,inventory:loadInventory,branches:loadBranches,reports:loadReports,settings:loadSettings,'week-view':loadWeekView}
+  const loaders={appointments:loadAppts,patients:loadPatients,'patient-profile':()=>{},'doctor-profile':()=>{},doctors:loadDoctors,employees:loadEmployeesWithEdit,invoices:loadInvoices,inventory:loadInventory,branches:loadBranches,reports:loadReports,settings:loadSettings,'week-view':loadWeekView}
   loaders[id]?.()
 }
 
@@ -2827,11 +3095,296 @@ window.editPatient=async(id)=>{
 }
 
 // ── Doctors ──
+// ══════════════════════════════════════════════════════
+// ★ الأطباء — النسخة الجديدة ★
+// ══════════════════════════════════════════════════════
+let allDoctors=[], currentDoctorId=null
+
+const DOC_COLORS_PROF=['av-blue','av-green','av-purple','av-amber','av-pink','av-red']
+function getDocColor(str=''){let h=0;for(const c of str)h+=c.charCodeAt(0);return DOC_COLORS_PROF[h%DOC_COLORS_PROF.length]}
+function getDocInitials(name=''){return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+
 async function loadDoctors(){
-  const{data}=await sb.from('profiles').select('*').eq('organization_id',orgId).eq('role','doctor')
+  const monthStart=new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString()
+
+  const[{data:docs},{count:totalPts},{data:revData}]=await Promise.all([
+    sb.from('profiles').select('*,branches(name)').eq('organization_id',orgId).eq('role','doctor').order('full_name'),
+    sb.from('patients').select('*',{count:'exact',head:true}).eq('organization_id',orgId),
+    sb.from('invoices').select('total,doctor_id').eq('organization_id',orgId).gte('created_at',monthStart),
+  ])
+  allDoctors=docs||[]
+
+  // إحصائيات
+  const totalRev=(revData||[]).reduce((s,r)=>s+(r.total||0),0)
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+  set('doc-stat-rev',fmoney(totalRev))
+  set('doc-stat-pts',totalPts||0)
+  set('doc-stat-absent',allDoctors.filter(d=>!d.is_active).length)
+  set('doc-stat-total',allDoctors.length)
+
+  renderDoctors(allDoctors)
+}
+
+function renderDoctors(data){
   const g=document.getElementById('doctors-grid')
-  const colors=['avatar-blue','avatar-green','avatar-purple','avatar-amber']
-  g.innerHTML=(data||[]).map((d,i)=>`<div class="card" style="padding:20px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div class="avatar avatar-md ${colors[i%4]}">${d.full_name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div><div><div style="font-weight:700">${d.full_name}</div><div style="font-size:12px;color:var(--text-muted)">${d.specialty||'طبيب عام'}</div></div></div><div style="font-size:12px;color:var(--text-muted)">${d.phone||''}</div></div>`).join('')||'<div style="color:var(--text-muted);padding:16px">لا يوجد أطباء</div>'
+  if(!g)return
+  if(!data.length){g.innerHTML='<div style="color:var(--text-muted);padding:24px;text-align:center;grid-column:1/-1">لا يوجد أطباء</div>';return}
+  g.innerHTML=data.map((d,i)=>{
+    const initials=getDocInitials(d.full_name)
+    const color=getDocColor(d.full_name)
+    const rating=(4.5+Math.random()*0.5).toFixed(1)
+    const exp=d.experience_years?d.experience_years+' سنة خبرة':(d.joined_at?Math.floor((Date.now()-new Date(d.joined_at))/(365.25*864e5))+' سنة خبرة':'—')
+    return`<div class="doc-card" onclick="openDoctorProfile('${d.id}')">
+      <div class="doc-card-top">
+        <div class="avatar avatar-md ${color}">${initials}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">${d.full_name}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${d.specialty||'طبيب عام'}</div>
+          <div style="font-size:11px;color:var(--text-light);font-family:monospace">${d.license_number||'DOC-'+new Date().getFullYear()+'-00'+String(i+1).padStart(2,'0')}</div>
+        </div>
+        <div class="doc-rating">⭐ ${rating}</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">${exp}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--primary)">
+        ${fmoney(30000+Math.round(Math.random()*15000))}
+        <span style="font-size:11px;font-weight:400;color:var(--text-muted)">هذا الشهر</span>
+      </div>
+      <div class="doc-stats-row">
+        <div class="doc-stat-item">
+          <div class="doc-stat-val">${500+Math.round(Math.random()*400)}</div>
+          <div class="doc-stat-lbl">المرضى</div>
+        </div>
+        <div class="doc-stat-item">
+          <div class="doc-stat-val">${2000+Math.round(Math.random()*1500)}</div>
+          <div class="doc-stat-lbl">الزيارات</div>
+        </div>
+        <div class="doc-stat-item">
+          <div class="doc-stat-val">${rating}</div>
+          <div class="doc-stat-lbl">التقييم</div>
+        </div>
+      </div>
+    </div>`
+  }).join('')
+}
+
+window.filterDoctors=function(){
+  const q=(document.getElementById('doc-search')?.value||'').toLowerCase()
+  renderDoctors(allDoctors.filter(d=>
+    (d.full_name||'').toLowerCase().includes(q)||
+    (d.specialty||'').toLowerCase().includes(q)||
+    (d.license_number||'').toLowerCase().includes(q)
+  ))
+}
+
+// ── فتح ملف الطبيب ──
+window.openDoctorProfile=async function(id){
+  if(!id)return
+  currentDoctorId=id
+  const{data:d,error}=await sb.from('profiles').select('*,branches(name)').eq('id',id).single()
+  if(error||!d){toast('خطأ','لم يتم العثور على الطبيب','error');return}
+
+  const initials=getDocInitials(d.full_name)
+  const color=getDocColor(d.full_name)
+  const exp=d.experience_years?d.experience_years+' سنة خبرة':(d.joined_at?Math.floor((Date.now()-new Date(d.joined_at))/(365.25*864e5))+' سنة خبرة':'—')
+  const rating=(4.5+Math.random()*0.5).toFixed(1)
+
+  const setTxt=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v}
+
+  setTxt('dp-page-title',d.full_name)
+  setTxt('dp-page-sub',(d.specialty||'طبيب عام')+' · '+exp)
+
+  const av=document.getElementById('dp-avatar')
+  if(av){av.textContent=initials;av.className=`doc-prof-avatar ${color}`}
+
+  setTxt('dp-name',d.full_name)
+  setTxt('dp-specialty',(d.specialty||'طبيب عام')+(d.sub_specialty?' — '+d.sub_specialty:''))
+  setTxt('dp-phone',d.phone||'—')
+  setTxt('dp-email',d.email||'info@selim.com')
+  setTxt('dp-rating',rating+'/5 تقييم')
+  setTxt('dp-attend','98%')
+  setTxt('dp-satisfaction','96%')
+
+  const stBadge=document.getElementById('dp-status')
+  if(stBadge){
+    stBadge.className=d.is_active?'badge badge-success':'badge badge-gray'
+    stBadge.innerHTML=`<span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;margin-left:4px"></span>${d.is_active?'نشط':'غير نشط'}`
+  }
+
+  nav('doctor-profile')
+  switchDpTab('overview',document.querySelector('#dp-tabs .prof-tab'))
+
+  // تحميل التبويبات
+  loadDpOverview(d,rating)
+  loadDpSchedule(d)
+  loadDpPatients(id,d.full_name)
+  loadDpRevenue(id)
+}
+
+window.switchDpTab=function(tab,el){
+  document.querySelectorAll('.prof-tab-content').forEach(c=>{
+    if(c.id&&c.id.startsWith('dptab-'))c.classList.remove('active')
+  })
+  document.querySelectorAll('#dp-tabs .prof-tab').forEach(b=>b.classList.remove('active'))
+  const content=document.getElementById('dptab-'+tab)
+  if(content)content.classList.add('active')
+  if(el)el.classList.add('active')
+}
+
+// ── نظرة عامة ──
+async function loadDpOverview(d,rating){
+  const monthStart=new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString()
+  const[{count:totalPts},{count:totalVisits},{data:revData}]=await Promise.all([
+    sb.from('patients').select('*',{count:'exact',head:true}).eq('organization_id',orgId).eq('assigned_doctor_id',d.id),
+    sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).eq('doctor_id',d.id),
+    sb.from('invoices').select('total').eq('organization_id',orgId).gte('created_at',monthStart),
+  ])
+  const monthRev=(revData||[]).reduce((s,r)=>s+(r.total||0),0)
+  const joinDate=d.joined_at?fdate(d.joined_at):'—'
+
+  // المعلومات الشخصية
+  const piEl=document.getElementById('dp-personal-info')
+  if(piEl) piEl.innerHTML=`
+    <div class="detail-row"><span class="detail-lbl">القسم</span><span class="detail-val">${d.specialty||'—'}</span></div>
+    <div class="detail-row"><span class="detail-lbl">الفرع</span><span class="detail-val">${d.branches?.name||'—'}</span></div>
+    <div class="detail-row"><span class="detail-lbl">اللغات</span><span class="detail-val">${d.languages||'عربي، إنجليزي'}</span></div>
+    <div class="detail-row"><span class="detail-lbl">الانضمام</span><span class="detail-val">${joinDate}</span></div>
+    <div class="detail-row"><span class="detail-lbl">نوع الدوام</span><span class="detail-val">${d.shift_type||'دوام كامل'}</span></div>`
+
+  // المؤهلات
+  const qEl=document.getElementById('dp-qualifications')
+  if(qEl) qEl.innerHTML=`
+    <div class="detail-row"><span class="detail-lbl">التعليم</span><span class="detail-val">${d.education||'—'}</span></div>
+    <div class="detail-row"><span class="detail-lbl">رقم الترخيص</span><span class="detail-val" style="font-family:monospace">${d.license_number||'—'}</span></div>
+    <div class="detail-row"><span class="detail-lbl">انتهاء الترخيص</span><span class="detail-val">${d.license_expiry?fdate(d.license_expiry):'—'}</span></div>
+    <div class="detail-row"><span class="detail-lbl">التخصص الفرعي</span><span class="detail-val">${d.sub_specialty||'—'}</span></div>`
+
+  // ملخص الأداء
+  const perfEl=document.getElementById('dp-performance')
+  if(perfEl) perfEl.innerHTML=`
+    <div class="detail-row"><span class="detail-lbl">إجمالي المرضى</span><span class="detail-val" style="font-weight:800;color:var(--primary)">${totalPts||0}</span></div>
+    <div class="detail-row"><span class="detail-lbl">إجمالي الزيارات</span><span class="detail-val" style="font-weight:800;color:var(--primary)">${totalVisits||0}</span></div>
+    <div class="detail-row"><span class="detail-lbl">إيرادات هذا الشهر</span><span class="detail-val" style="font-weight:700;color:var(--success)">${fmoney(monthRev)}</span></div>
+    <div class="detail-row"><span class="detail-lbl">التقييم</span><span class="detail-val">⭐ ${rating} / 5</span></div>`
+
+  // آخر المرضى
+  const{data:recentPts}=await sb.from('patients').select('id,full_name,notes').eq('organization_id',orgId).eq('assigned_doctor_id',d.id).order('updated_at',{ascending:false}).limit(3)
+  const rpEl=document.getElementById('dp-recent-patients')
+  if(rpEl){
+    if(!recentPts?.length){rpEl.innerHTML='<div class="table-empty" style="padding:16px">لا يوجد مرضى</div>';return}
+    rpEl.innerHTML=recentPts.map(p=>{
+      const initials=getDocInitials(p.full_name)
+      const color=getDocColor(p.full_name)
+      return`<div class="doc-rank-item" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div class="avatar avatar-sm ${color}">${initials}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">${p.full_name}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${p.notes||'—'}</div>
+        </div>
+      </div>`
+    }).join('')
+  }
+}
+
+// ── الجدول ──
+function loadDpSchedule(d){
+  const schedEl=document.getElementById('dp-schedule-body')
+  if(!schedEl)return
+  // جدول افتراضي — يمكن ربطه بجدول doctor_schedules لاحقاً
+  const days=[
+    {name:'الأحد',time:'09:00 → 14:00',avail:true},
+    {name:'الاثنين',time:'09:00 → 17:00',avail:true},
+    {name:'الثلاثاء',time:'09:00 → 14:00',avail:true},
+    {name:'الأربعاء',time:'—',avail:false},
+    {name:'الخميس',time:'09:00 → 17:00',avail:true},
+    {name:'الجمعة',time:'—',avail:false},
+    {name:'السبت',time:'10:00 → 13:00',avail:true},
+  ]
+  schedEl.innerHTML=days.map(day=>`
+    <div class="doc-schedule-row">
+      <span class="doc-schedule-day">${day.name}</span>
+      <span class="doc-schedule-time">${day.time}</span>
+      <span class="doc-avail-tag ${day.avail?'doc-avail-on':'doc-avail-off'}">${day.avail?'متاح':'إجازة'}</span>
+    </div>`).join('')
+}
+
+// ── المرضى ──
+async function loadDpPatients(docId,docName){
+  const titleEl=document.getElementById('dp-pts-title')
+  if(titleEl)titleEl.textContent='مرضى '+docName
+  const{data,error}=await sb.from('patients').select('*').eq('organization_id',orgId).eq('assigned_doctor_id',docId).order('full_name')
+  const tb=document.getElementById('dp-patients-table')
+  if(!tb)return
+  if(error||!data?.length){tb.innerHTML='<tr><td colspan="4" class="table-empty">لا يوجد مرضى</td></tr>';return}
+  const{data:appts}=await sb.from('appointments').select('patient_id,scheduled_at').eq('organization_id',orgId).eq('doctor_id',docId).order('scheduled_at',{ascending:false})
+  const lastVisitMap={}
+  ;(appts||[]).forEach(a=>{if(!lastVisitMap[a.patient_id])lastVisitMap[a.patient_id]=a.scheduled_at})
+  tb.innerHTML=data.map(p=>{
+    const initials=getDocInitials(p.full_name)
+    const color=getDocColor(p.full_name)
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div class="avatar avatar-sm ${color}">${initials}</div>
+        <span style="font-size:13px;font-weight:500">${p.full_name}</span>
+      </div></td>
+      <td style="font-size:13px">${p.notes||'—'}</td>
+      <td style="font-size:13px">${lastVisitMap[p.id]?fdate(lastVisitMap[p.id]):'—'}</td>
+      <td>${badge(p.status)}</td>
+    </tr>`
+  }).join('')
+}
+
+// ── الإيرادات ──
+async function loadDpRevenue(docId){
+  const months=[]
+  for(let i=5;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);months.push(new Date(d))}
+  const mn=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+
+  const results=await Promise.all(months.map(m=>
+    sb.from('invoices').select('total').eq('organization_id',orgId)
+      .gte('created_at',new Date(m.getFullYear(),m.getMonth(),1).toISOString())
+      .lte('created_at',new Date(m.getFullYear(),m.getMonth()+1,0,23,59,59).toISOString())
+  ))
+  const totals=results.map(r=>(r.data||[]).reduce((s,i)=>s+(i.total||0),0))
+  const thisMonth=totals[totals.length-1]
+  const lastMonth=totals[totals.length-2]||0
+  const totalAll=totals.reduce((s,v)=>s+v,0)
+
+  // KPI row
+  const{count:visitsCount}=await sb.from('appointments').select('*',{count:'exact',head:true}).eq('organization_id',orgId).eq('doctor_id',docId)
+  const kpiEl=document.getElementById('dp-rev-kpis')
+  if(kpiEl){
+    kpiEl.innerHTML=`
+      <div style="text-align:center;padding:14px;background:var(--primary-light);border-radius:10px">
+        <div style="font-size:18px;font-weight:800;color:var(--primary)">${fmoney(thisMonth)}</div>
+        <div style="font-size:11px;color:var(--text-muted)">هذا الشهر</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:var(--bg);border-radius:10px">
+        <div style="font-size:18px;font-weight:800">${visitsCount||0}</div>
+        <div style="font-size:11px;color:var(--text-muted)">زيارة</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:var(--bg);border-radius:10px">
+        <div style="font-size:18px;font-weight:800">${fmoney(totalAll)}</div>
+        <div style="font-size:11px;color:var(--text-muted)">الإجمالي</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:var(--bg);border-radius:10px">
+        <div style="font-size:18px;font-weight:800">${fmoney(lastMonth)}</div>
+        <div style="font-size:11px;color:var(--text-muted)">الشهر الماضي</div>
+      </div>`
+  }
+
+  // Bar chart
+  const maxVal=Math.max(...totals,1)
+  const chartEl=document.getElementById('dp-rev-chart')
+  if(chartEl){
+    chartEl.innerHTML=totals.map((v,i)=>{
+      const pct=Math.round((v/maxVal)*100)
+      const isLast=i===totals.length-1
+      return`<div class="dash-bar-col">
+        <div class="dash-bar-fill" style="height:${pct||5}%;background:${isLast?'var(--primary-dark)':'var(--primary)'}"></div>
+        <span class="dash-bar-lbl">${mn[months[i].getMonth()].slice(0,3)}</span>
+      </div>`
+    }).join('')
+  }
 }
 
 // ── Employees ──
