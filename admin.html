@@ -3101,8 +3101,8 @@ window.editPatient=async(id)=>{
 let allDoctors=[], currentDoctorId=null
 
 const DOC_COLORS_PROF=['av-blue','av-green','av-purple','av-amber','av-pink','av-red']
-function getDocColor(str=''){let h=0;for(const c of str)h+=c.charCodeAt(0);return DOC_COLORS_PROF[h%DOC_COLORS_PROF.length]}
-function getDocInitials(name=''){return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+function getDrColor(str=''){let h=0;for(const c of str)h+=c.charCodeAt(0);return DOC_COLORS_PROF[h%DOC_COLORS_PROF.length]}
+function getDrInitials(name=''){return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
 
 async function loadDoctors(){
   const monthStart=new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString()
@@ -3130,8 +3130,8 @@ function renderDoctors(data){
   if(!g)return
   if(!data.length){g.innerHTML='<div style="color:var(--text-muted);padding:24px;text-align:center;grid-column:1/-1">لا يوجد أطباء</div>';return}
   g.innerHTML=data.map((d,i)=>{
-    const initials=getDocInitials(d.full_name)
-    const color=getDocColor(d.full_name)
+    const initials=getDrInitials(d.full_name)
+    const color=getDrColor(d.full_name)
     const rating=(4.5+Math.random()*0.5).toFixed(1)
     const exp=d.experience_years?d.experience_years+' سنة خبرة':(d.joined_at?Math.floor((Date.now()-new Date(d.joined_at))/(365.25*864e5))+' سنة خبرة':'—')
     return`<div class="doc-card" onclick="openDoctorProfile('${d.id}')">
@@ -3183,8 +3183,8 @@ window.openDoctorProfile=async function(id){
   const{data:d,error}=await sb.from('profiles').select('*,branches(name)').eq('id',id).single()
   if(error||!d){toast('خطأ','لم يتم العثور على الطبيب','error');return}
 
-  const initials=getDocInitials(d.full_name)
-  const color=getDocColor(d.full_name)
+  const initials=getDrInitials(d.full_name)
+  const color=getDrColor(d.full_name)
   const exp=d.experience_years?d.experience_years+' سنة خبرة':(d.joined_at?Math.floor((Date.now()-new Date(d.joined_at))/(365.25*864e5))+' سنة خبرة':'—')
   const rating=(4.5+Math.random()*0.5).toFixed(1)
 
@@ -3272,8 +3272,8 @@ async function loadDpOverview(d,rating){
   if(rpEl){
     if(!recentPts?.length){rpEl.innerHTML='<div class="table-empty" style="padding:16px">لا يوجد مرضى</div>';return}
     rpEl.innerHTML=recentPts.map(p=>{
-      const initials=getDocInitials(p.full_name)
-      const color=getDocColor(p.full_name)
+      const initials=getDrInitials(p.full_name)
+      const color=getDrColor(p.full_name)
       return`<div class="doc-rank-item" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
         <div class="avatar avatar-sm ${color}">${initials}</div>
         <div style="flex:1">
@@ -3319,8 +3319,8 @@ async function loadDpPatients(docId,docName){
   const lastVisitMap={}
   ;(appts||[]).forEach(a=>{if(!lastVisitMap[a.patient_id])lastVisitMap[a.patient_id]=a.scheduled_at})
   tb.innerHTML=data.map(p=>{
-    const initials=getDocInitials(p.full_name)
-    const color=getDocColor(p.full_name)
+    const initials=getDrInitials(p.full_name)
+    const color=getDrColor(p.full_name)
     return`<tr>
       <td><div style="display:flex;align-items:center;gap:8px">
         <div class="avatar avatar-sm ${color}">${initials}</div>
@@ -3560,13 +3560,60 @@ document.getElementById('notif-btn')?.addEventListener('click',()=>{
   const cnt=document.getElementById('notif-count');if(cnt)cnt.style.display='none'
 })
 
-// ── Modal auto-reset ──
-const origOpen=window.openModal
-window.openModal=id=>{
-  if(id==='modal-appt'){document.getElementById('appt-id').value='';document.getElementById('appt-modal-title').textContent='موعد جديد';document.getElementById('appt-notes').value=''}
-  if(id==='modal-patient'){document.getElementById('patient-id').value='';document.getElementById('patient-modal-title').textContent='مريض جديد';['patient-name','patient-dob','patient-phone','patient-email','patient-insurance','patient-address','patient-notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})}
-  if(id==='modal-employee'){document.getElementById('emp-id').value='';document.getElementById('emp-modal-title').textContent='موظف جديد';['emp-name','emp-phone','emp-specialty','emp-email','emp-pass'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})}
-  origOpen(id)
+// ── Modal auto-reset + lab-order + service + contract ──
+const _baseOpenModal=window.openModal
+window.openModal=function(id){
+  // appt
+  if(id==='modal-appt'){
+    const el1=document.getElementById('appt-id');if(el1)el1.value=''
+    const el2=document.getElementById('appt-modal-title');if(el2)el2.textContent='موعد جديد'
+    const el3=document.getElementById('appt-notes');if(el3)el3.value=''
+  }
+  // patient
+  if(id==='modal-patient'){
+    const el=document.getElementById('patient-id');if(el)el.value=''
+    const t=document.getElementById('patient-modal-title');if(t)t.textContent='مريض جديد'
+    ;['patient-name','patient-dob','patient-phone','patient-email','patient-insurance','patient-address','patient-notes'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
+  }
+  // employee
+  if(id==='modal-employee'){
+    const el=document.getElementById('emp-id');if(el)el.value=''
+    const t=document.getElementById('emp-modal-title');if(t)t.textContent='موظف جديد'
+    ;['emp-name','emp-phone','emp-specialty','emp-email','emp-pass'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
+  }
+  // service
+  if(id==='modal-service'){
+    const el=document.getElementById('svc-id');if(el)el.value=''
+    const t=document.getElementById('svc-modal-title');if(t)t.textContent='خدمة جديدة'
+    ;['svc-name','svc-desc'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
+    const sp=document.getElementById('svc-price');if(sp)sp.value=0
+    const sd=document.getElementById('svc-duration');if(sd)sd.value=30
+    const sa=document.getElementById('svc-active');if(sa)sa.value='true'
+  }
+  // contract
+  if(id==='modal-contract'){
+    const el=document.getElementById('con-id');if(el)el.value=''
+    const t=document.getElementById('con-modal-title');if(t)t.textContent='تعاقد جديد'
+    ;['con-company','con-notes'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
+    ;[['con-value',0],['con-beneficiaries',0],['con-coverage',80]].forEach(([i,v])=>{const e=document.getElementById(i);if(e)e.value=v})
+    const cs=document.getElementById('con-status');if(cs)cs.value='active'
+  }
+  // lab-order
+  if(id==='modal-lab-order'){
+    ;['lab-order-tests','lab-order-notes'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''})
+    const lp=document.getElementById('lab-order-priority');if(lp)lp.value='normal'
+    ;(async()=>{
+      const[{data:pts},{data:docs}]=await Promise.all([
+        sb.from('patients').select('id,full_name').eq('organization_id',orgId).order('full_name').limit(100),
+        sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
+      ])
+      const ps=document.getElementById('lab-order-patient')
+      const ds=document.getElementById('lab-order-doctor')
+      if(ps) ps.innerHTML='<option value="">— اختر مريض —</option>'+(pts||[]).map(p=>`<option value="${p.id}"${p.id===currentPatientId?' selected':''}>${p.full_name}</option>`).join('')
+      if(ds) ds.innerHTML='<option value="">— اختر طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
+    })()
+  }
+  _baseOpenModal(id)
 }
 
 // ── Close modals on overlay click ──
@@ -4112,43 +4159,6 @@ window.deleteContract=async function(id){
   if(error){toast('خطأ',error.message,'error');return}
   toast('تم الحذف','','success')
   loadContracts()
-}
-
-// ── Reset modals الجديدة ──
-const _origOpen2=window.openModal
-window.openModal=id=>{
-  if(id==='modal-service'){
-    document.getElementById('svc-id').value=''
-    document.getElementById('svc-modal-title').textContent='خدمة جديدة'
-    ;['svc-name','svc-desc'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})
-    document.getElementById('svc-price').value=0
-    document.getElementById('svc-duration').value=30
-    document.getElementById('svc-active').value='true'
-  }
-  if(id==='modal-contract'){
-    document.getElementById('con-id').value=''
-    document.getElementById('con-modal-title').textContent='تعاقد جديد'
-    ;['con-company','con-notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})
-    document.getElementById('con-value').value=0
-    document.getElementById('con-beneficiaries').value=0
-    document.getElementById('con-coverage').value=80
-    document.getElementById('con-status').value='active'
-  }
-  if(id==='modal-lab-order'){
-    ;['lab-order-tests','lab-order-notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=''})
-    document.getElementById('lab-order-priority').value='normal'
-    ;(async()=>{
-      const[{data:pts},{data:docs}]=await Promise.all([
-        sb.from('patients').select('id,full_name').eq('organization_id',orgId).order('full_name').limit(100),
-        sb.from('profiles').select('id,full_name').eq('organization_id',orgId).eq('role','doctor')
-      ])
-      const ps=document.getElementById('lab-order-patient')
-      const ds=document.getElementById('lab-order-doctor')
-      if(ps) ps.innerHTML='<option value="">— اختر مريض —</option>'+(pts||[]).map(p=>`<option value="${p.id}"${p.id===currentPatientId?' selected':''}>${p.full_name}</option>`).join('')
-      if(ds) ds.innerHTML='<option value="">— اختر طبيب —</option>'+(docs||[]).map(d=>`<option value="${d.id}">${d.full_name}</option>`).join('')
-    })()
-  }
-  _origOpen2(id)
 }
 
 // ── Init ──
